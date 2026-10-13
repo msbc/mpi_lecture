@@ -18,7 +18,14 @@ LDLIBS   = -lm
 %-cxx : %.c
 	$(CXX) $(CXXFLAGS) -x c++ $< -o $(EXE) $(LDLIBS)
 
+# Record how every source is compiled, for clang-tidy and clangd (needs bear)
+SRCS = $(wildcard *.c other_solutions/*.c)
+
+compile_commands.json: Makefile $(SRCS)
+	bear -- $(MAKE) -s $(SRCS:.c=)
+	rm -rf $(EXE) $(EXE).dSYM
+
 clean:
-	rm -f $(EXE)
+	rm -rf $(EXE) $(EXE).dSYM
 
 .PHONY: clean

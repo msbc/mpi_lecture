@@ -1,6 +1,8 @@
 program main
-  use mpi
-  implicit none
+  use mpi, only: MPI_ALLREDUCE, MPI_BCAST, MPI_COMM_RANK, MPI_COMM_SIZE, &
+                 MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, &
+                 MPI_INTEGER, MPI_SUM, MPI_WTIME
+  implicit none (type, external)
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x
@@ -16,7 +18,7 @@ program main
   tt0 = MPI_WTIME()
 
   if (myid == 0) then
-    open(unit=12, file='nslices.dat', status='old', action='read')
+    open(unit=12, file="nslices.dat", status="old", action="read")
     read(12, *) n
     close(12)
   end if
@@ -43,8 +45,8 @@ program main
                      MPI_COMM_WORLD, ierr)
 
   ttf = MPI_WTIME()
-  write(*, *) 'myid=', myid, ' pi=', pi, '  Error=', abs(pi - PI25DT), &
-              '  time=', (ttf - tt0)
+  write(*, *) "myid=", myid, " pi=", pi, "  Error=", abs(pi - PI25DT), &
+              "  time=", (ttf - tt0)
 
   call MPI_FINALIZE(ierr)
 end program main

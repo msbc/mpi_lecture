@@ -1,6 +1,8 @@
 program piapprox
-  use mpi
-  implicit none
+  use mpi, only: MPI_ALLREDUCE, MPI_BCAST, MPI_COMM_RANK, MPI_COMM_SIZE, &
+                 MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, &
+                 MPI_INTEGER, MPI_SUM
+  implicit none (type, external)
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: dx, sum, x, pi, mypi
@@ -12,7 +14,7 @@ program piapprox
 
   nslices = 0
   if (myrank == 0) then
-    open(unit=12, file='nslices.dat', status='old', action='read')
+    open(unit=12, file="nslices.dat", status="old", action="read")
     read(12, *) nslices
     close(12)
   end if
@@ -20,7 +22,7 @@ program piapprox
   ! Collective communication. Process 0 "broadcasts" nslices to all other processes
   call MPI_BCAST(nslices, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
-  write(*, *) '  Number of intervals = ', nslices
+  write(*, *) "  Number of intervals = ", nslices
 
   dx = 1.0_dp / nslices
   sum = 0.0_dp
@@ -38,7 +40,7 @@ program piapprox
   call MPI_ALLREDUCE(mypi, pi, 1, MPI_DOUBLE_PRECISION, MPI_SUM, &
                      MPI_COMM_WORLD, ierr)
 
-  write(*, *) ' Pi=', pi, ', Error=', abs(pi - PI25DT)
+  write(*, *) " Pi=", pi, ", Error=", abs(pi - PI25DT)
 
   call MPI_FINALIZE(ierr)
 end program piapprox

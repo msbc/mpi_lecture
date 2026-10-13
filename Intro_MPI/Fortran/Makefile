@@ -8,9 +8,9 @@ FFLAGS = -O2 -g
 
 # Warning and standard-checking flags differ between gfortran and Intel ifx
 ifneq (,$(findstring GNU,$(shell $(FC) --version 2>&1)))
-  FFLAGS += -Wall -Wextra -std=f2008
+  FFLAGS += -Wall -Wextra -std=f2018
 else
-  FFLAGS += -warn all -stand f08
+  FFLAGS += -warn all -stand f18
 endif
 
 % : %.f90

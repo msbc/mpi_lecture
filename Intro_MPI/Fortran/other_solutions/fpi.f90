@@ -1,6 +1,8 @@
 program main
-  use mpi
-  implicit none
+  use mpi, only: MPI_BCAST, MPI_COMM_RANK, MPI_COMM_SIZE, MPI_COMM_WORLD, &
+                 MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_INTEGER, &
+                 MPI_REDUCE, MPI_SUM
+  implicit none (type, external)
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x
@@ -13,17 +15,17 @@ program main
   call MPI_COMM_SIZE(MPI_COMM_WORLD, numprocs, ierr)
 
   if (myid == 0) then
-    open(unit=12, file='nslices.dat', status='old', action='read')
+    open(unit=12, file="nslices.dat", status="old", action="read")
     read(12, *) n
     close(12)
-    write(*, *) 'number of intervals=', n
+    write(*, *) "number of intervals=", n
   end if
   ! broadcast n
   call MPI_BCAST(n, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
   ! check for quit signal
   if (n <= 0) then
-    if (myid == 0) write(*, *) 'n <= 0, exiting...'
+    if (myid == 0) write(*, *) "n <= 0, exiting..."
   else
     ! calculate the interval size
     h = 1.0_dp / n
@@ -39,7 +41,7 @@ program main
                     MPI_COMM_WORLD, ierr)
     ! node 0 prints the answer.
     if (myid == 0) then
-      print *, 'pi is ', pi, ' Error is', abs(pi - PI25DT)
+      print *, "pi is ", pi, " Error is", abs(pi - PI25DT)
     end if
   end if
 

@@ -9,6 +9,9 @@ MPILecture_fall_2025_v1.pdf
 Intro_MPI/Fortran/pi
 Intro_MPI/C/pi
 *.dSYM/
+
+# Compilation database for clang-tidy/clangd (machine-specific paths)
+compile_commands.json
 *.mod
 *.o
 a.out
