@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+NamespaceIndentation: All
+AllowShortFunctionsOnASingleLine: All
+Standard: c++20
+IndentWidth: 2
+ColumnLimit: 90
+UseTab: Never

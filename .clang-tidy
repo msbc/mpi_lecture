@@ -1,0 +1,15 @@
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  performance-*,
+  readability-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  clang-diagnostic-unused-include,
+  misc-include-cleaner,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -clang-analyzer-optin.mpi.MPI-Checker,
+WarningsAsErrors: '*'
+HeaderFilterRegex: 'src/.*'
