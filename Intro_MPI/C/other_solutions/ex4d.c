@@ -1,46 +1,77 @@
-#include "mpi.h"
-#include <stdio.h>
+#include <limits.h>
 #include <math.h>
-int main( int argc, char *argv[] )
-{
-    int n, myid, numprocs, i, j, tag;
-    double PI25DT = 3.141592653589793238462643;
-    double mypi, pi, h, sum, x;
-    FILE *ifp;
-    MPI_Status  Stat;
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-    n = 1;
-    tag = 1;
+/* Read the number of slices from the first line of a file, or return -1 on failure */
+static int read_nslices(const char* filename) {
+  FILE* file_ptr = fopen(filename, "r");
+  if (!file_ptr) {
+    return -1;
+  }
+  char line[32];
+  const char* status = fgets(line, sizeof line, file_ptr);
+  fclose(file_ptr);
+  if (status != line) {
+    return -1;
+  }
+  char* end;
+  long value = strtol(line, &end, 10);
+  if (end == line || value <= 0 || value > INT_MAX) {
+    return -1;
+  }
+  return (int)value;
+}
 
-    MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+int main(int argc, char* argv[]) {
+  int n;
+  int myid;
+  int numprocs;
+  int i;
+  int j;
+  int tag;
+  double PI25DT = 3.141592653589793238462643;
+  double mypi;
+  double pi;
+  double h;
+  double sum;
+  double x;
+  MPI_Status Stat;
 
-    if (myid == 0) {
-       ifp = fopen("nslices.dat","r");
-       fscanf(ifp,"%d",&n);
-       fclose(ifp);
-       for (j = 1; j < numprocs; j++) {
-           MPI_Send(&n, 1, MPI_INT, j, tag, MPI_COMM_WORLD);
-       }
+  n = 1;
+  tag = 1;
+
+  MPI_Init(&argc, &argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+  if (myid == 0) {
+    n = read_nslices("nslices.dat");
+    if (n <= 0) {
+      fprintf(stderr, "Could not read a positive number from nslices.dat\n");
+      MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    else {
-       MPI_Recv(&n, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &Stat);
+    for (j = 1; j < numprocs; j++) {
+      MPI_Send(&n, 1, MPI_INT, j, tag, MPI_COMM_WORLD);
     }
-    printf("number of intervals = %d\n",n);
+  } else {
+    MPI_Recv(&n, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &Stat);
+  }
+  printf("number of intervals = %d\n", n);
 
-    h   = 1.0 / (double) n;
-    sum = 0.0;
-    for (i = 1; i <= n; i++) {
-        x = h * ((double)i - 0.5);
-        sum += (4.0 / (1.0 + x*x));
-    }
-    mypi = h * sum;
+  h = 1.0 / (double)n;
+  sum = 0.0;
+  for (i = 1; i <= n; i++) {
+    x = h * ((double)i - 0.5);
+    sum += (4.0 / (1.0 + (x * x)));
+  }
+  mypi = h * sum;
 
-    pi = mypi;
-    printf("myid=%d  pi is approximately %.16f, Error is %.16f\n",
-               myid, pi, fabs(pi - PI25DT));
+  pi = mypi;
+  printf("myid=%d  pi is approximately %.16f, Error is %.16f\n", myid, pi,
+         fabs(pi - PI25DT));
 
-    MPI_Finalize();
-    return 0;
+  MPI_Finalize();
+  return 0;
 }

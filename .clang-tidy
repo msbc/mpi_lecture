@@ -1,6 +1,7 @@
 Checks: >
   bugprone-*,
   -bugprone-easily-swappable-parameters,
+  -bugprone-casting-through-void,
   performance-*,
   readability-*,
   modernize-*,
@@ -11,5 +12,9 @@ Checks: >
   -readability-magic-numbers,
   -readability-function-cognitive-complexity,
   -clang-analyzer-optin.mpi.MPI-Checker,
+  -modernize-deprecated-headers,
+  -modernize-avoid-c-arrays,
+CheckOptions:
+  readability-implicit-bool-conversion.AllowPointerConditions: true
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'src/.*'
