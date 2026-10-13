@@ -2,9 +2,11 @@
 """Build Intro_MPI.key (Keynote, "Dynamic Waves Light", 1920x1080) from the slide
 spec in slides.py. Generates an AppleScript and runs it with osascript.
 
-Usage:  python3 build_keynote.py [--export-png DIR]
+Usage:  python3 build_keynote.py [--overwrite] [--export-png DIR]
+
+Refuses to run if Intro_MPI.key already exists unless --overwrite is given.
 """
-import os, re, struct, subprocess, sys, zlib
+import argparse, os, re, struct, subprocess, sys, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(HERE, "figures")
@@ -302,6 +304,15 @@ def build(spec, out):
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Build Intro_MPI.key from slides.py.")
+    ap.add_argument("--overwrite", action="store_true",
+                    help="replace an existing Intro_MPI.key (Keynote edits are lost)")
+    ap.add_argument("--export-png", metavar="DIR",
+                    help="also export each slide as a PNG into DIR")
+    args = ap.parse_args()
+    if os.path.exists(OUT) and not args.overwrite:
+        ap.error(f"{OUT} already exists (Keynote edits would be lost); "
+                 "pass --overwrite to replace it")
     out = ["set LS to character id 8232",
            'tell application "Keynote"',
            f'set d to make new document with properties {{document theme:theme "{THEME}", width:{W}, height:{H}}}']
@@ -309,8 +320,8 @@ def main():
         build(sp, out)
     out += ["delete slide 1 of d",
             f'save d in POSIX file "{OUT}"']
-    if "--export-png" in sys.argv:
-        dest = sys.argv[sys.argv.index("--export-png") + 1]
+    if args.export_png:
+        dest = args.export_png
         os.makedirs(dest, exist_ok=True)
         out.append(f'export d to POSIX file "{dest}" as slide images with properties {{image format:PNG}}')
     out += ["return (count of slides of d)", "end tell"]
