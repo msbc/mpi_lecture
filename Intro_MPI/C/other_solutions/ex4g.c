@@ -3,10 +3,10 @@
 #include <math.h>
 int main( int argc, char *argv[] )
 {
-    int n, myid, numprocs, i, j, tag, my_n;
+    int n, myid, numprocs, i, j, tag;
     double PI25DT = 3.141592653589793238462643;
     double mypi, pi, h, sum, x, pi_frac;
-    double tt0, tt1, ttf;
+    double tt0, ttf;
     FILE *ifp;
     MPI_Status  Stat;
 
@@ -20,7 +20,7 @@ int main( int argc, char *argv[] )
     tt0 = MPI_Wtime();
 
     if (myid == 0) {
-       ifp = fopen("nslices.in","r");
+       ifp = fopen("nslices.dat","r");
        fscanf(ifp,"%d",&n);
        fclose(ifp);
        for (j = 1; j < numprocs; j++) {

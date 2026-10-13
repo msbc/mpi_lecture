@@ -6,21 +6,22 @@ int main( int argc, char *argv[] )
     int n, myid, numprocs, i;
     double PI25DT = 3.141592653589793238462643;
     double mypi, pi, h, sum, x;
-    FILE *ifp
+    FILE *ifp;
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
     if (myid == 0) {
-        ifp = fopen("ex4.in","r");
+        ifp = fopen("nslices.dat","r");
         fscanf(ifp,"%d",&n);
         fclose(ifp);
         printf("number of intervals = %d\n",n);
     }
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    if (n == 0)
-        printf("n = 0, exiting...\n");
-        break;
+    if (n <= 0) {
+        if (myid == 0)
+            printf("n <= 0, exiting...\n");
+    }
     else {
         h   = 1.0 / (double) n;
         sum = 0.0;

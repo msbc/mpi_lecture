@@ -5,5 +5,5 @@
 FC=mpif90
 FFLAGS=-g
 
-% : %.f
+% : %.f90
 	$(FC) $(FFLAGS) $< -o fpi_exe

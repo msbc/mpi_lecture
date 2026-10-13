@@ -3,16 +3,13 @@
 #include <math.h>
 int main( int argc, char *argv[] )
 {
-    int n, myid, numprocs, i, j, tag, my_n;
+    int n, myid, numprocs, i;
     double PI25DT = 3.141592653589793238462643;
-    double mypi, pi, h, sum, x, pi_frac;
-    double tt0, tt1, ttf;
+    double mypi, pi, h, sum, x;
+    double tt0, ttf;
     FILE *ifp;
-    MPI_Status  Stat;
-    MPI_Request request;
 
     n = 1;
-    tag = 1;
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
@@ -21,7 +18,7 @@ int main( int argc, char *argv[] )
     tt0 = MPI_Wtime();
 
     if (myid == 0) {
-       ifp = fopen("nslices.in","r");
+       ifp = fopen("nslices.dat","r");
        fscanf(ifp,"%d",&n);
        fclose(ifp);
     }
@@ -38,7 +35,7 @@ int main( int argc, char *argv[] )
     }
     mypi = h * sum;
 
-    pi = 0;  /* It is not necessary to set pi = 0 */
+    pi = 0;  /* Only process 0 receives the sum; this gives the others a defined value to print */
 
  /* Global reduction. All processes send their value of mypi to process 0
     and process 0 adds them up (MPI_SUM) */

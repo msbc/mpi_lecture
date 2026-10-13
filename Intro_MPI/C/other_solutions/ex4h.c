@@ -1,15 +1,17 @@
 #include "mpi.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 int main( int argc, char *argv[] )
 {
-    int n, myid, numprocs, i, j, tag, my_n;
+    int n, myid, numprocs, i, j, tag;
     double PI25DT = 3.141592653589793238462643;
     double mypi, pi, h, sum, x, pi_frac;
-    double tt0, tt1, ttf;
+    double tt0, ttf;
     FILE *ifp;
     MPI_Status  Stat;
     MPI_Request request;
+    MPI_Request *requests = NULL;
 
     n = 1;
     tag = 1;
@@ -21,11 +23,13 @@ int main( int argc, char *argv[] )
     tt0 = MPI_Wtime();
 
     if (myid == 0) {
-       ifp = fopen("nslices.in","r");
+       ifp = fopen("nslices.dat","r");
        fscanf(ifp,"%d",&n);
        fclose(ifp);
+       /* One request per send, so each one can be completed later */
+       requests = malloc((numprocs - 1) * sizeof(MPI_Request));
        for (j = 1; j < numprocs; j++) {
-           MPI_Isend(&n, 1, MPI_INT, j, tag, MPI_COMM_WORLD, &request);
+           MPI_Isend(&n, 1, MPI_INT, j, tag, MPI_COMM_WORLD, &requests[j - 1]);
        }
     }
     else {
@@ -43,6 +47,9 @@ int main( int argc, char *argv[] )
 
     pi = mypi;
     if (myid == 0) {
+       /* Every non-blocking operation must be completed before MPI_Finalize */
+       MPI_Waitall(numprocs - 1, requests, MPI_STATUSES_IGNORE);
+       free(requests);
        for (j = 1; j < numprocs; j++) {
            MPI_Recv(&pi_frac, 1, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &Stat);
            pi += pi_frac;
@@ -50,6 +57,7 @@ int main( int argc, char *argv[] )
     }
     else {
        MPI_Isend(&mypi, 1, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &request);
+       MPI_Wait(&request, MPI_STATUS_IGNORE);
     }
     ttf = MPI_Wtime();
     printf("myid=%d  pi is approximately %.16f, Error is %.16f  time = %10f\n",

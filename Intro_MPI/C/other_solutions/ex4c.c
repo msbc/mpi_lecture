@@ -15,7 +15,7 @@ int main( int argc, char *argv[] )
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
     if (myid == 0) {
-       ifp = fopen("nslices.in","r");
+       ifp = fopen("nslices.dat","r");
        fscanf(ifp,"%d",&n);
        fclose(ifp);
     }

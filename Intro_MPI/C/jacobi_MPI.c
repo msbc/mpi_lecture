@@ -5,11 +5,9 @@
 /* This example handles a 12 x 12 mesh, on 4 processors only. */
 #define maxn 12
 
-int main( argc, argv )
-int argc;
-char **argv;
+int main( int argc, char *argv[] )
 {
-    int        rank, value, size, errcnt, toterr, i, j, itcnt;
+    int        rank, size, i, j, itcnt;
     int        i_first, i_last;
     MPI_Status status;
     double     diffnorm, gdiffnorm;

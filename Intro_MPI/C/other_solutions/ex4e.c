@@ -3,7 +3,7 @@
 #include <math.h>
 int main( int argc, char *argv[] )
 {
-    int n, myid, numprocs, i, j, tag, my_n;
+    int n, myid, numprocs, i, j, tag;
     double PI25DT = 3.141592653589793238462643;
     double mypi, pi, h, sum, x;
     FILE *ifp;
@@ -17,7 +17,7 @@ int main( int argc, char *argv[] )
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
     if (myid == 0) {
-       ifp = fopen("nslices.in","r");
+       ifp = fopen("nslices.dat","r");
        fscanf(ifp,"%d",&n);
        fclose(ifp);
        for (j = 1; j < numprocs; j++) {
