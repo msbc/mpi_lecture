@@ -10,7 +10,8 @@ SLIDES = [
         kind="title",
         title="Introduction to MPI",
         sub="Fall Break Parallel Programming Bootcamp 2026",
-        footer="Your Name  ·  Princeton University  ·  adapted from slides by Jonathan Gorard (PPPL)",
+        footer="Matt Coleman, Ph.D.  ·  Research Computing  ·  Princeton University",
+        credit="adapted from slides by Jonathan Gorard (PPPL)",
     ),
     dict(kind="section", title="Why MPI?"),
     dict(

@@ -230,6 +230,8 @@ def build(spec, out):
         sl.cmd(f"set object text of default title item of s to {q(spec['title'])}")
         sl.cmd(f"set object text of default body item of s to {q(spec['sub'])}")
         sl.placeholder_text(966, spec["footer"])
+        if spec.get("credit"):  # small line just under the subtitle
+            sl.text(spec["credit"], X0, 651, CW, size=24, font="Graphik-Regular")
     elif k == "section":
         sl = Slide(out, "Section")
         sl.title(spec["title"], item="default title item of s")
