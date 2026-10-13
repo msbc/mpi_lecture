@@ -6,7 +6,14 @@ Usage:  python3 build_keynote.py [--overwrite] [--export-png DIR]
 
 Refuses to run if Intro_MPI.key already exists unless --overwrite is given.
 """
-import argparse, os, re, struct, subprocess, sys, zlib
+
+import argparse
+import os
+import re
+import struct
+import subprocess
+import sys
+import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(HERE, "figures")
@@ -17,25 +24,28 @@ from slides import SLIDES  # noqa: E402
 
 THEME = "Dynamic Waves Light"
 W, H = 1920, 1080
-X0, CW = 95, 1730            # left margin, content width
-Y0, YMAX = 300, 1020         # content area (below title + subtitle)
+X0, CW = 95, 1730  # left margin, content width
+Y0, YMAX = 300, 1020  # content area (below title + subtitle)
+
 
 # Colors (16-bit RGB for AppleScript)
 def rgb(h):
     h = h.lstrip("#")
-    return tuple(int(h[i:i + 2], 16) * 257 for i in (0, 2, 4))
-TEXT = rgb("#41464D")        # theme body text
+    return tuple(int(h[i : i + 2], 16) * 257 for i in (0, 2, 4))
+
+
+TEXT = rgb("#41464D")  # theme body text
 CODE = rgb("#2B3036")
-ACCENT = rgb("#1F63B5")      # MPI identifiers
+ACCENT = rgb("#1F63B5")  # MPI identifiers
 COMMENT = rgb("#7D858F")
 CAPTION = rgb("#6A7079")
 
 MONO = "Menlo-Regular"
 SANS = "Graphik-Light"
 HEAD = "Produkt-Light"
-LINE = 1.167                 # Menlo line height / font size in Keynote text items
-CHAR = 0.602                 # Menlo advance / font size
-PAD = 28                     # card padding around code
+LINE = 1.167  # Menlo line height / font size in Keynote text items
+CHAR = 0.602  # Menlo advance / font size
+PAD = 28  # card padding around code
 
 
 # ---------------------------------------------------------------- PNG helpers
@@ -43,6 +53,7 @@ def png_size(path):
     with open(path, "rb") as f:
         f.read(16)
         return struct.unpack(">II", f.read(8))
+
 
 def write_card(w, h, r=22, alpha=0.82, border=(205, 216, 226)):
     """White rounded rectangle with a 2px border, as an RGBA PNG of exactly w x h."""
@@ -63,17 +74,23 @@ def write_card(w, h, r=22, alpha=0.82, border=(205, 216, 226)):
                 sd = (dx * dx + dy * dy) ** 0.5 - r
             else:
                 sd = -min(px, py, w - px, h - py)
-            cov = max(0.0, min(1.0, 0.5 - sd))        # anti-aliased outer edge
-            inner = max(0.0, min(1.0, -sd - 2.0))     # 0 on the 2px border, 1 inside
+            cov = max(0.0, min(1.0, 0.5 - sd))  # anti-aliased outer edge
+            inner = max(0.0, min(1.0, -sd - 2.0))  # 0 on the 2px border, 1 inside
             c = tuple(int(255 * inner + b * (1 - inner)) for b in border)
             al = int(255 * cov * (alpha * inner + 0.9 * (1 - inner)))
             row += bytes((*c, al))
         rows.append(bytes(row))
     raw = b"".join(rows)
+
     def chunk(t, d):
-        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
-    data = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
-            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+
+    data = (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
+        + chunk(b"IDAT", zlib.compress(raw, 9))
+        + chunk(b"IEND", b"")
+    )
     with open(path, "wb") as f:
         f.write(data)
     return path
@@ -86,34 +103,43 @@ def q(s):
     parts = s.split(" ")
     return " & LS & ".join(f'"{p}"' for p in parts)
 
+
 class Slide:
     def __init__(self, out, master):
         self.o = out
-        self.o.append(f'set s to make new slide at end of slides of d with properties '
-                      f'{{base slide:master slide "{master}" of d}}')
+        self.o.append(
+            f'set s to make new slide at end of slides of d with properties {{base slide:master slide "{master}" of d}}'
+        )
 
     def cmd(self, line):
         self.o.append(line)
 
     def placeholder_text(self, y, text, font=None, size=None):
         """Set text of the master placeholder shape whose top edge is at y (or delete it if text is None)."""
-        self.cmd(f"set shs to {{}}\n"
-                 f"try\n  set shs to (every shape of s)\nend try\n"
-                 f"repeat with i from 1 to count of shs\n"
-                 f"  set sh to item i of shs\n"
-                 f"  if item 2 of (position of sh as list) = {y} then\n" +
-                 (f"    delete sh\n" if text is None else
-                  f"    set object text of sh to {q(text)}\n" +
-                  (f'    set font of object text of sh to "{font}"\n' if font else "") +
-                  (f"    set size of object text of sh to {size}\n" if size else "")) +
-                 f"    exit repeat\n  end if\nend repeat")
+        self.cmd(
+            f"set shs to {{}}\n"
+            f"try\n  set shs to (every shape of s)\nend try\n"
+            f"repeat with i from 1 to count of shs\n"
+            f"  set sh to item i of shs\n"
+            f"  if item 2 of (position of sh as list) = {y} then\n"
+            + (
+                "    delete sh\n"
+                if text is None
+                else f"    set object text of sh to {q(text)}\n"
+                + (f'    set font of object text of sh to "{font}"\n' if font else "")
+                + (f"    set size of object text of sh to {size}\n" if size else "")
+            )
+            + "    exit repeat\n  end if\nend repeat"
+        )
 
     def title(self, title, sub=None, item="default title item of s"):
         self.cmd(f"set object text of {item} to {q(title)}")
         # the theme's title font has no π glyph; use a thin face that matches the title weight
         for i, ch in enumerate(title):
             if ch == "π":
-                self.cmd(f'try\n  set font of character {i + 1} of object text of {item} to "HelveticaNeue-Thin"\nend try')
+                self.cmd(
+                    f'try\n  set font of character {i + 1} of object text of {item} to "HelveticaNeue-Thin"\nend try'
+                )
         if item.startswith("default title"):
             self.placeholder_text(183, sub)
 
@@ -127,8 +153,7 @@ class Slide:
             self.cmd(f"set size of object text of default body item of s to {size}")
 
     def image(self, path, x, y, w, h):
-        self.cmd(f'tell s to set im to make new image with properties '
-                 f'{{file:POSIX file "{path}"}}')
+        self.cmd(f'tell s to set im to make new image with properties {{file:POSIX file "{path}"}}')
         self.cmd(f"set width of im to {w}")
         self.cmd(f"set height of im to {h}")
         self.cmd(f"set position of im to {{{x}, {y}}}")
@@ -148,12 +173,14 @@ class Slide:
 
 def code_size(code, w, hmax, maxsize=34):
     lines = code.split("\n")
-    n, m = len(lines), max(len(l.expandtabs(8)) for l in lines)
+    n, m = len(lines), max(len(ln.expandtabs(8)) for ln in lines)
     sz = min(maxsize, (w - 2 * PAD - 10) / (CHAR * m), (hmax - 2 * PAD - 10) / (LINE * n))
     return int(sz)
 
+
 def code_height(code, size):
     return int(LINE * size * len(code.split("\n")) + 8 + 2 * PAD)
+
 
 def highlight(code):
     """(start, end, color) 1-based inclusive character ranges for MPI names and comments."""
@@ -168,6 +195,7 @@ def highlight(code):
         pos += len(line) + 1
     return spans
 
+
 def add_code(sl, code, x, y, w, hmax=None, size=None):
     """Code on a rounded card at (x, y), width w. Returns card height."""
     hmax = hmax or (YMAX - y)
@@ -178,6 +206,7 @@ def add_code(sl, code, x, y, w, hmax=None, size=None):
     for a, b, col in highlight(code):
         sl.cmd(f"set color of characters {a} thru {b} of object text of ti to {{{col[0]}, {col[1]}, {col[2]}}}")
     return ch
+
 
 def add_figure(sl, name, x, y, bw, bh, center=True, card=True):
     """Fit figure into box (bw x bh) on a white card; returns (x, y, w, h) of card."""
@@ -212,18 +241,17 @@ def build(spec, out):
         sl = Slide(out, "Title & Bullets")
         sl.title(spec["title"], spec.get("sub"))
         sl.body(spec["bullets"], size=spec.get("size"))
-    elif k == "split":   # bullets left, code right
+    elif k == "split":  # bullets left, code right
         sl = Slide(out, "Title & Bullets")
         sl.title(spec["title"], spec.get("sub"))
         cw = spec.get("code_w", 900)
         sl.body(spec["bullets"], w=CW - cw - 60, size=spec.get("size", 36))
         add_code(sl, spec["code"], X0 + CW - cw, Y0 + 20, cw, size=spec.get("code_size"))
-    elif k == "code":    # code card on top, optional bullets below
+    elif k == "code":  # code card on top, optional bullets below
         sl = Slide(out, "Title & Bullets" if spec.get("bullets") else "Title Only")
         sl.title(spec["title"], spec.get("sub"))
         hmax = spec.get("code_h", YMAX - Y0)
-        ch = add_code(sl, spec["code"], X0, Y0, spec.get("code_w", CW), hmax=hmax,
-                      size=spec.get("code_size"))
+        ch = add_code(sl, spec["code"], X0, Y0, spec.get("code_w", CW), hmax=hmax, size=spec.get("code_size"))
         if spec.get("bullets"):
             sl.body(spec["bullets"], y=Y0 + ch + 40, size=spec.get("size", 36))
     elif k == "twocode":
@@ -279,7 +307,7 @@ def build(spec, out):
             sl.image(write_card(cw, YMAX - Y0 - 40), x, Y0, cw, YMAX - Y0 - 40)
             sl.text(head, x + 36, Y0 + 32, cw - 72, size=48, font=HEAD, color=ACCENT)
             sl.text("\n".join("•  " + it for it in items), x + 36, Y0 + 190, cw - 72, size=34)
-    elif k == "flow":    # vertical stack of text / centered images
+    elif k == "flow":  # vertical stack of text / centered images
         sl = Slide(out, "Title Only")
         sl.title(spec["title"], spec.get("sub"))
         y = Y0
@@ -292,7 +320,7 @@ def build(spec, out):
                 y += chh + 20
             elif blk[0] == "code":
                 y += add_code(sl, blk[1], X0, y, CW, size=32) + 30
-            elif blk[0] == "imgtext":   # image left, text right
+            elif blk[0] == "imgtext":  # image left, text right
                 _, img, ih, txt = blk
                 cx, cy, cw_, chh = add_figure(sl, img, X0, y, 600, ih, center=False)
                 sl.text(txt, X0 + 680, y + 60, CW - 680, size=40)
@@ -305,21 +333,21 @@ def build(spec, out):
 
 def main():
     ap = argparse.ArgumentParser(description="Build Intro_MPI.key from slides.py.")
-    ap.add_argument("--overwrite", action="store_true",
-                    help="replace an existing Intro_MPI.key (Keynote edits are lost)")
-    ap.add_argument("--export-png", metavar="DIR",
-                    help="also export each slide as a PNG into DIR")
+    ap.add_argument(
+        "--overwrite", action="store_true", help="replace an existing Intro_MPI.key (Keynote edits are lost)"
+    )
+    ap.add_argument("--export-png", metavar="DIR", help="also export each slide as a PNG into DIR")
     args = ap.parse_args()
     if os.path.exists(OUT) and not args.overwrite:
-        ap.error(f"{OUT} already exists (Keynote edits would be lost); "
-                 "pass --overwrite to replace it")
-    out = ["set LS to character id 8232",
-           'tell application "Keynote"',
-           f'set d to make new document with properties {{document theme:theme "{THEME}", width:{W}, height:{H}}}']
+        ap.error(f"{OUT} already exists (Keynote edits would be lost); pass --overwrite to replace it")
+    out = [
+        "set LS to character id 8232",
+        'tell application "Keynote"',
+        f'set d to make new document with properties {{document theme:theme "{THEME}", width:{W}, height:{H}}}',
+    ]
     for sp in SLIDES:
         build(sp, out)
-    out += ["delete slide 1 of d",
-            f'save d in POSIX file "{OUT}"']
+    out += ["delete slide 1 of d", f'save d in POSIX file "{OUT}"']
     if args.export_png:
         dest = args.export_png
         os.makedirs(dest, exist_ok=True)
@@ -333,6 +361,7 @@ def main():
     r = subprocess.run(["osascript", path], capture_output=True, text=True)
     print(r.stdout.strip(), r.stderr.strip())
     sys.exit(r.returncode)
+
 
 if __name__ == "__main__":
     main()

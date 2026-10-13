@@ -6,535 +6,716 @@ by Jonathan Gorard. Presenter notes keep the fuller wording of the original slid
 
 SLIDES = [
     # ------------------------------------------------------------------ opening
-    dict(kind="title",
-         title="Introduction to MPI",
-         sub="Fall Break Parallel Programming Bootcamp 2026",
-         footer="Your Name  ·  Princeton University  ·  adapted from slides by Jonathan Gorard (PPPL)"),
-
+    dict(
+        kind="title",
+        title="Introduction to MPI",
+        sub="Fall Break Parallel Programming Bootcamp 2026",
+        footer="Your Name  ·  Princeton University  ·  adapted from slides by Jonathan Gorard (PPPL)",
+    ),
     dict(kind="section", title="Why MPI?"),
-
-    dict(kind="bullets", title="Why parallel computing?",
-         bullets=[
-             "Time, funding and patience are finite: faster calculations are good",
-             "Running n copies of a code on one shared-memory node is already parallel (e.g. OpenMP)",
-             "But what if the problem doesn't fit in one node's memory?",
-             "Goal: split the work across many cores that cooperate, exchanging data as needed",
-         ],
-         notes="Human patience/funding/lifespan is finite: speeding up calculations is good. "
-               "Can't we just run n instances of the same code? That's technically parallel computing - "
-               "this is, for example, what OpenMP directives do on a shared-memory node. "
-               "But what if your problem is too large to fit into the memory of a single compute node? "
-               "What if you want to use all those extra cores on your multicore processor? "
-               "Ideally, we want to divide up the work between several processor cores so that they can "
-               "work together in parallel, exchanging data between them as needed."),
-
-    dict(kind="columns", title="Parallel programming models",
-         cols=[
-             ("Shared memory", [
-                 "OpenMP directives (deceptively simple!)",
-                 "pthreads: you manage each thread's memory access explicitly",
-                 "GPUs: CUDA, OpenACC, OpenMP (also on CPUs)",
-             ]),
-             ("Partitioned global address space", [
-                 "SPMD with globally addressable memory (PGAS)",
-                 "Coarray Fortran (Fortran 2008)",
-                 "Unified Parallel C (UPC)",
-             ]),
-             ("Distributed memory", [
-                 "Each process has its own private memory",
-                 "Data moves only via explicit messages",
-                 "MPI: today's topic",
-             ]),
-         ],
-         notes="Multithreading/shared-memory parallelism: directive-based libraries like OpenMP (deceptively "
-               "simple!); more explicit libraries like pthreads/POSIX Threads (somewhat more complicated, since "
-               "one must explicitly manage each thread's access to memory); GPGPU programming libraries like "
-               "CUDA, OpenACC (also supports CPUs) and OpenMP (also supports CPUs). "
-               "Partitioned global address space: one approach to SPMD parallelism, using globally-addressable "
-               "memory. Languages include Coarray Fortran/CAF (Fortran 2008) and Unified Parallel C/UPC."),
-
-    dict(kind="bullets", title="The need for message passing",
-         bullets=[
-             "Distributed memory: each process has its own virtual memory and can't directly access the memory of others",
-             "The same executable runs on every process; shared data must be sent explicitly",
-             "SPMD (Single Program, Multiple Data): every process runs the same instructions asynchronously, each on its own piece of data",
-             "Not to be confused with SIMD (Single Instruction, Multiple Data), as in vector computing",
-         ], size=36),
-
-    dict(kind="figure", title="Splitting the work",
-         sub="Domain decomposition: grid-based codes (time integrators, hyperbolic solvers)",
-         image="domain-decomposition.png",
-         caption="Domain decomposition in SUNDIALS (Suite of Nonlinear and Differential/Algebraic equation Solvers)"),
-
-    dict(kind="figure", title="Splitting the work",
-         sub="Matrix decomposition: linear PDE solvers",
-         image="matrix-decomposition.png",
-         caption="Matrix decomposition in PETSc (Portable, Extensible Toolkit for Scientific Computation)"),
-
-    dict(kind="figure", title="Splitting the work",
-         sub="Coloring: particle codes (molecular dynamics, particle-in-cell)",
-         image="coloring-decomposition.png",
-         caption="Coloring decomposition in VTKMolecule (VTK: the Visualization Toolkit)"),
-
-    dict(kind="bullets", title="What is MPI?",
-         bullets=[
-             "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's highly portable",
-             "In practice: a library of C functions and Fortran subroutines for exchanging data between processes",
-             "Not limited by the number of cores in one node, unlike shared-memory models",
-             "Bindings for Python (mpi4py), R (Rmpi), Julia (MPI.jl), Lua (lua-mpi)…: if it can call C, it can run MPI",
-         ], size=36),
-
-    dict(kind="bullets", title="Is it difficult?",
-         bullets=[
-             "About 400 functions, but you can do everything with just 6 (though the code may be hard to read)",
-             "Collective operations simplify code a lot, and vendors optimize them for their interconnects",
-             "You don't need to master all of MPI to use it well",
-             "How you split up the work matters much more, and is much harder",
-         ], size=36),
-
+    dict(
+        kind="bullets",
+        title="Why parallel computing?",
+        bullets=[
+            "Time, funding and patience are finite: faster calculations are good",
+            "Running n copies of a code on one shared-memory node is already parallel (e.g. OpenMP)",
+            "But what if the problem doesn't fit in one node's memory?",
+            "Goal: split the work across many cores that cooperate, exchanging data as needed",
+        ],
+        notes="Human patience/funding/lifespan is finite: speeding up calculations is good. "
+        "Can't we just run n instances of the same code? That's technically parallel computing - "
+        "this is, for example, what OpenMP directives do on a shared-memory node. "
+        "But what if your problem is too large to fit into the memory of a single compute node? "
+        "What if you want to use all those extra cores on your multicore processor? "
+        "Ideally, we want to divide up the work between several processor cores so that they can "
+        "work together in parallel, exchanging data between them as needed.",
+    ),
+    dict(
+        kind="columns",
+        title="Parallel programming models",
+        cols=[
+            (
+                "Shared memory",
+                [
+                    "OpenMP directives (deceptively simple!)",
+                    "pthreads: you manage each thread's memory access explicitly",
+                    "GPUs: CUDA, OpenACC, OpenMP (also on CPUs)",
+                ],
+            ),
+            (
+                "Partitioned global address space",
+                [
+                    "SPMD with globally addressable memory (PGAS)",
+                    "Coarray Fortran (Fortran 2008)",
+                    "Unified Parallel C (UPC)",
+                ],
+            ),
+            (
+                "Distributed memory",
+                [
+                    "Each process has its own private memory",
+                    "Data moves only via explicit messages",
+                    "MPI: today's topic",
+                ],
+            ),
+        ],
+        notes="Multithreading/shared-memory parallelism: directive-based libraries like OpenMP (deceptively "
+        "simple!); more explicit libraries like pthreads/POSIX Threads (somewhat more complicated, since "
+        "one must explicitly manage each thread's access to memory); GPGPU programming libraries like "
+        "CUDA, OpenACC (also supports CPUs) and OpenMP (also supports CPUs). "
+        "Partitioned global address space: one approach to SPMD parallelism, using globally-addressable "
+        "memory. Languages include Coarray Fortran/CAF (Fortran 2008) and Unified Parallel C/UPC.",
+    ),
+    dict(
+        kind="bullets",
+        title="The need for message passing",
+        bullets=[
+            "Distributed memory: each process has its own virtual memory and can't directly access the memory of others",
+            "The same executable runs on every process; shared data must be sent explicitly",
+            "SPMD (Single Program, Multiple Data): every process runs the same instructions asynchronously, each on its own piece of data",
+            "Not to be confused with SIMD (Single Instruction, Multiple Data), as in vector computing",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="figure",
+        title="Splitting the work",
+        sub="Domain decomposition: grid-based codes (time integrators, hyperbolic solvers)",
+        image="domain-decomposition.png",
+        caption="Domain decomposition in SUNDIALS (Suite of Nonlinear and Differential/Algebraic equation Solvers)",
+    ),
+    dict(
+        kind="figure",
+        title="Splitting the work",
+        sub="Matrix decomposition: linear PDE solvers",
+        image="matrix-decomposition.png",
+        caption="Matrix decomposition in PETSc (Portable, Extensible Toolkit for Scientific Computation)",
+    ),
+    dict(
+        kind="figure",
+        title="Splitting the work",
+        sub="Coloring: particle codes (molecular dynamics, particle-in-cell)",
+        image="coloring-decomposition.png",
+        caption="Coloring decomposition in VTKMolecule (VTK: the Visualization Toolkit)",
+    ),
+    dict(
+        kind="bullets",
+        title="What is MPI?",
+        bullets=[
+            "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's highly portable",
+            "In practice: a library of C functions and Fortran subroutines for exchanging data between processes",
+            "Not limited by the number of cores in one node, unlike shared-memory models",
+            "Bindings for Python (mpi4py), R (Rmpi), Julia (MPI.jl), Lua (lua-mpi)…: if it can call C, it can run MPI",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="bullets",
+        title="Is it difficult?",
+        bullets=[
+            "About 400 functions, but you can do everything with just 6 (though the code may be hard to read)",
+            "Collective operations simplify code a lot, and vendors optimize them for their interconnects",
+            "You don't need to master all of MPI to use it well",
+            "How you split up the work matters much more, and is much harder",
+        ],
+        size=36,
+    ),
     # ---------------------------------------------------------- build and run
     dict(kind="section", title="Building and running MPI codes"),
-
-    dict(kind="code", title="Compiling and linking", sub="Step 1: load a compiler and an MPI library on Adroit",
-         code="# Intel compilers + Intel MPI\n"
-              "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
-              "\n"
-              "# or: gcc, gfortran + OpenMPI\n"
-              "module load openmpi/gcc/4.1.6",
-         code_size=34,
-         bullets=["Next, the compiler needs MPI's include files and libraries",
-                  "You could pass them by hand, but every MPI implementation ships wrapper scripts that do it for you"]),
-
-    dict(kind="code", title="Compiling and linking", sub="Step 2: use the MPI compiler wrappers",
-         code="mpicc  mpi_code.c   -o code.o    # C\n"
-              "mpicxx mpi_code.cpp -o code.o    # C++\n"
-              "mpif90 mpi_code.f90 -o code.o    # Fortran 90\n"
-              "\n"
-              "mpicc -show    # print the full underlying compile command",
-         code_size=36),
-
-    dict(kind="split", title="Writing a Makefile",
-         bullets=["We're lazy: we'd rather not compile and link by hand",
-                  "Let make do it for us"],
-         code="CC = mpicc\n"
-              "CFLAGS = -O\n"
-              "\n"
-              "%: %.c\n"
-              "\t$(CC) $(CFLAGS) $< -o $@",
-         code_w=900, code_size=40),
-
-    dict(kind="code", title="Running an MPI executable",
-         sub="Every MPI implementation provides a launcher",
-         code="# MPICH or OpenMPI\n"
-              "mpirun -np <processes> code.o\n"
-              "mpiexec -n <processes> code.o\n"
-              "\n"
-              "# Slurm workload manager (e.g. Princeton clusters)\n"
-              "srun -n <processes> code.o",
-         code_size=38),
-
-    dict(kind="bullets", title="How MPI works",
-         bullets=[
-             "An identical copy of the program starts on each core, in its own OS process with a private address space",
-             "Each process works on a subset of the problem, exchanging data as needed",
-             "Data moves over the network interconnect (distributed memory) or through shared memory (e.g. SMP nodes)",
-             "Good for coarse-grained parallelism: high scalability, low communication and synchronization overhead, but poor load balancing",
-         ], size=36),
-
-    dict(kind="code", title="The Slurm workload manager",
-         sub="A job script: 16 processes for up to 4 hours, with email at start and end",
-         code="#!/bin/bash\n"
-              "#SBATCH -N 2\n"
-              "#SBATCH --ntasks-per-node=8\n"
-              "#SBATCH -t 4:00:00\n"
-              "#SBATCH --mail-type=begin\n"
-              "#SBATCH --mail-type=end\n"
-              "#SBATCH --mail-user=<netID>@princeton.edu\n"
-              "\n"
-              "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
-              "srun ./code.o",
-         code_size=34),
-
-    dict(kind="code", title="The Slurm workload manager", sub="Submitting and managing jobs",
-         code="sbatch <script>     # submit a job\n"
-              "squeue -a          # check the status of (all) jobs in the queue\n"
-              "scancel <jobID>    # cancel a job",
-         code_size=38),
-
+    dict(
+        kind="code",
+        title="Compiling and linking",
+        sub="Step 1: load a compiler and an MPI library on Adroit",
+        code="# Intel compilers + Intel MPI\n"
+        "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
+        "\n"
+        "# or: gcc, gfortran + OpenMPI\n"
+        "module load openmpi/gcc/4.1.6",
+        code_size=34,
+        bullets=[
+            "Next, the compiler needs MPI's include files and libraries",
+            "You could pass them by hand, but every MPI implementation ships wrapper scripts that do it for you",
+        ],
+    ),
+    dict(
+        kind="code",
+        title="Compiling and linking",
+        sub="Step 2: use the MPI compiler wrappers",
+        code="mpicc  mpi_code.c   -o code.o    # C\n"
+        "mpicxx mpi_code.cpp -o code.o    # C++\n"
+        "mpif90 mpi_code.f90 -o code.o    # Fortran 90\n"
+        "\n"
+        "mpicc -show    # print the full underlying compile command",
+        code_size=36,
+    ),
+    dict(
+        kind="split",
+        title="Writing a Makefile",
+        bullets=["We're lazy: we'd rather not compile and link by hand", "Let make do it for us"],
+        code="CC = mpicc\nCFLAGS = -O\n\n%: %.c\n\t$(CC) $(CFLAGS) $< -o $@",
+        code_w=900,
+        code_size=40,
+    ),
+    dict(
+        kind="code",
+        title="Running an MPI executable",
+        sub="Every MPI implementation provides a launcher",
+        code="# MPICH or OpenMPI\n"
+        "mpirun -np <processes> code.o\n"
+        "mpiexec -n <processes> code.o\n"
+        "\n"
+        "# Slurm workload manager (e.g. Princeton clusters)\n"
+        "srun -n <processes> code.o",
+        code_size=38,
+    ),
+    dict(
+        kind="bullets",
+        title="How MPI works",
+        bullets=[
+            "An identical copy of the program starts on each core, in its own OS process with a private address space",
+            "Each process works on a subset of the problem, exchanging data as needed",
+            "Data moves over the network interconnect (distributed memory) or through shared memory (e.g. SMP nodes)",
+            "Good for coarse-grained parallelism: high scalability, low communication and synchronization overhead, but poor load balancing",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="code",
+        title="The Slurm workload manager",
+        sub="A job script: 16 processes for up to 4 hours, with email at start and end",
+        code="#!/bin/bash\n"
+        "#SBATCH -N 2\n"
+        "#SBATCH --ntasks-per-node=8\n"
+        "#SBATCH -t 4:00:00\n"
+        "#SBATCH --mail-type=begin\n"
+        "#SBATCH --mail-type=end\n"
+        "#SBATCH --mail-user=<netID>@princeton.edu\n"
+        "\n"
+        "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
+        "srun ./code.o",
+        code_size=34,
+    ),
+    dict(
+        kind="code",
+        title="The Slurm workload manager",
+        sub="Submitting and managing jobs",
+        code="sbatch <script>     # submit a job\n"
+        "squeue -a          # check the status of (all) jobs in the queue\n"
+        "scancel <jobID>    # cancel a job",
+        code_size=38,
+    ),
     # ------------------------------------------------------------ pi example
     dict(kind="section", title="Example: approximating π"),
-
-    dict(kind="flow", title="Approximating π",
-         blocks=[
-             ("text", "Our first hands-on example: approximate π by numerical integration, using"),
-             ("img", "eq-antiderivative.png", 190),
-             ("text", "and therefore, since arctan(1) = π/4:"),
-             ("img", "eq-pi.png", 210),
-         ]),
-
-    dict(kind="flow", title="Approximating π", sub="The midpoint-rule Riemann sum",
-         blocks=[
-             ("img", "eq-midpoint.png", 150),
-             ("imgtext", "riemann-sum.png", 540,
-              "Split [0, 1] into nslices slices of width Δx\n"
-              "Evaluate f at each slice's midpoint, xᵢ = (i − ½) Δx\n"
-              "Here f(x) = 4 / (1 + x²), so the sum approaches π"),
-         ],
-         notes="Figure: a Riemann sum approximation to the integral 4 ∫₀¹ dx/(1+x²)."),
-
-    dict(kind="twocode", title="Serial π in C", sub="cpi_1.c",
-         left='#include <stdio.h>\n'
-              '#include <math.h>\n'
-              '\n'
-              'int main(int argc, char *argv[])\n'
-              '{\n'
-              '  FILE *file_ptr;\n'
-              '  file_ptr = fopen("nslices.dat", "r");\n'
-              '  int nslices;\n'
-              '  fscanf(file_ptr, "%d", &nslices);\n'
-              '  fclose(file_ptr);\n'
-              '  printf("Number of intervals = %d.\\n",\n'
-              '         nslices);\n'
-              '\n'
-              '  double dx = 1.0 / (double) nslices;\n'
-              '  double sum = 0.0;',
-         right='  double x;\n'
-               '  for (int i = 1; i <= nslices; i++) {\n'
-               '    x = dx * ((double) i - 0.5);\n'
-               '    sum += (4.0 / (1.0 + (x * x)));\n'
-               '  }\n'
-               '\n'
-               '  double pi = dx * sum;\n'
-               '  printf("Pi is approximately %.16f, "\n'
-               '         "with error %.16f.\\n", pi,\n'
-               '         fabs(pi - 3.141592653589793238462643));\n'
-               '\n'
-               '  return 0;\n'
-               '}'),
-
-    dict(kind="twocode", title="Serial π in Fortran", sub="fpi_1.f",
-         left="program piapprox\n"
-              "  double precision dx, sum, x, pi, err\n"
-              "  integer nslices, i, ierr\n"
-              "\n"
-              "  open(12, file='nslices.dat', status='old')\n"
-              "  read(12,*) nslices\n"
-              "  close(12)\n"
-              "  write(*,*) 'Number of intervals = ',\n"
-              "             nslices\n"
-              "\n"
-              "  dx = 1.0d0 / nslices\n"
-              "  sum = 0.0d0",
-         right="  do i = 1, nslices\n"
-               "    x = dx * (dble(i) - 0.5d0)\n"
-               "    sum = sum + 4.0d0 / (1.0d0 + (x * x))\n"
-               "  end do\n"
-               "\n"
-               "  pi = dx * sum\n"
-               "  err = abs(pi - 3.141592653589793238462643d0)\n"
-               "  write(*,*) 'Pi is approximately ', pi,\n"
-               "             ', with error ', err\n"
-               "end",
-         notes="Line breaks inside write statements are for display only; see fpi_1.f for the exact source."),
-
-    dict(kind="code", title="Hands-on exercise #1", sub="Setting up",
-         code="# 1. Log in to Adroit\n"
-              "ssh -X <netID>@adroit.princeton.edu\n"
-              "\n"
-              "# 2. Load the Intel compiler and MPI library\n"
-              "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
-              "\n"
-              "# 3. Copy the exercise files (don't forget the final dot!)\n"
-              "cp -r /home/jg5510/Intro_MPI .\n"
-              "\n"
-              "# 4. Pick your language\n"
-              "cd Intro_MPI/C        # or: cd Intro_MPI/Fortran",
-         code_size=32),
-
-    dict(kind="split", title="Hands-on exercise #1", sub="Build and run",
-         bullets=["Skim the Makefile and slurm_script (both deliberately simple)",
-                  "Look at cpi_1.c or fpi_1.f: the code from the previous slides",
-                  "Build it, run it in serial, then run it in parallel with Slurm",
-                  "Check output.log: how do the serial and parallel runs differ?"],
-         code="make cpi_1    # or: make fpi_1\n"
-              "./cpi_exe     # or: ./fpi_exe\n"
-              "\n"
-              "sbatch slurm_script",
-         code_w=760, size=34),
-
+    dict(
+        kind="flow",
+        title="Approximating π",
+        blocks=[
+            ("text", "Our first hands-on example: approximate π by numerical integration, using"),
+            ("img", "eq-antiderivative.png", 190),
+            ("text", "and therefore, since arctan(1) = π/4:"),
+            ("img", "eq-pi.png", 210),
+        ],
+    ),
+    dict(
+        kind="flow",
+        title="Approximating π",
+        sub="The midpoint-rule Riemann sum",
+        blocks=[
+            ("img", "eq-midpoint.png", 150),
+            (
+                "imgtext",
+                "riemann-sum.png",
+                540,
+                "Split [0, 1] into nslices slices of width Δx\n"
+                "Evaluate f at each slice's midpoint, xᵢ = (i − ½) Δx\n"
+                "Here f(x) = 4 / (1 + x²), so the sum approaches π",
+            ),
+        ],
+        notes="Figure: a Riemann sum approximation to the integral 4 ∫₀¹ dx/(1+x²).",
+    ),
+    dict(
+        kind="twocode",
+        title="Serial π in C",
+        sub="cpi_1.c",
+        left="#include <stdio.h>\n"
+        "#include <math.h>\n"
+        "\n"
+        "int main(int argc, char *argv[])\n"
+        "{\n"
+        "  FILE *file_ptr;\n"
+        '  file_ptr = fopen("nslices.dat", "r");\n'
+        "  int nslices;\n"
+        '  fscanf(file_ptr, "%d", &nslices);\n'
+        "  fclose(file_ptr);\n"
+        '  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);\n"
+        "\n"
+        "  double dx = 1.0 / (double) nslices;\n"
+        "  double sum = 0.0;",
+        right="  double x;\n"
+        "  for (int i = 1; i <= nslices; i++) {\n"
+        "    x = dx * ((double) i - 0.5);\n"
+        "    sum += (4.0 / (1.0 + (x * x)));\n"
+        "  }\n"
+        "\n"
+        "  double pi = dx * sum;\n"
+        '  printf("Pi is approximately %.16f, "\n'
+        '         "with error %.16f.\\n", pi,\n'
+        "         fabs(pi - 3.141592653589793238462643));\n"
+        "\n"
+        "  return 0;\n"
+        "}",
+    ),
+    dict(
+        kind="twocode",
+        title="Serial π in Fortran",
+        sub="fpi_1.f",
+        left="program piapprox\n"
+        "  double precision dx, sum, x, pi, err\n"
+        "  integer nslices, i, ierr\n"
+        "\n"
+        "  open(12, file='nslices.dat', status='old')\n"
+        "  read(12,*) nslices\n"
+        "  close(12)\n"
+        "  write(*,*) 'Number of intervals = ',\n"
+        "             nslices\n"
+        "\n"
+        "  dx = 1.0d0 / nslices\n"
+        "  sum = 0.0d0",
+        right="  do i = 1, nslices\n"
+        "    x = dx * (dble(i) - 0.5d0)\n"
+        "    sum = sum + 4.0d0 / (1.0d0 + (x * x))\n"
+        "  end do\n"
+        "\n"
+        "  pi = dx * sum\n"
+        "  err = abs(pi - 3.141592653589793238462643d0)\n"
+        "  write(*,*) 'Pi is approximately ', pi,\n"
+        "             ', with error ', err\n"
+        "end",
+        notes="Line breaks inside write statements are for display only; see fpi_1.f for the exact source.",
+    ),
+    dict(
+        kind="code",
+        title="Hands-on exercise #1",
+        sub="Setting up",
+        code="# 1. Log in to Adroit\n"
+        "ssh -X <netID>@adroit.princeton.edu\n"
+        "\n"
+        "# 2. Load the Intel compiler and MPI library\n"
+        "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
+        "\n"
+        "# 3. Copy the exercise files (don't forget the final dot!)\n"
+        "cp -r /home/jg5510/Intro_MPI .\n"
+        "\n"
+        "# 4. Pick your language\n"
+        "cd Intro_MPI/C        # or: cd Intro_MPI/Fortran",
+        code_size=32,
+    ),
+    dict(
+        kind="split",
+        title="Hands-on exercise #1",
+        sub="Build and run",
+        bullets=[
+            "Skim the Makefile and slurm_script (both deliberately simple)",
+            "Look at cpi_1.c or fpi_1.f: the code from the previous slides",
+            "Build it, run it in serial, then run it in parallel with Slurm",
+            "Check output.log: how do the serial and parallel runs differ?",
+        ],
+        code="make cpi_1    # or: make fpi_1\n./cpi_exe     # or: ./fpi_exe\n\nsbatch slurm_script",
+        code_w=760,
+        size=34,
+    ),
     # ---------------------------------------------------------- fundamentals
     dict(kind="section", title="MPI fundamentals"),
-
-    dict(kind="bullets", title="MPI communicators",
-         bullets=[
-             "A communicator identifies a group of processes",
-             "Each process has a unique rank in it: 0, 1, …, n − 1",
-             "MPI maps these abstract processes onto concrete processing units",
-             "Every communication call names a communicator",
-             "Default: MPI_COMM_WORLD, which contains all processes",
-             "A process can belong to several communicators, with a separate rank in each",
-         ], size=34),
-
-    dict(kind="code", title="Anatomy of an MPI program", sub="In C",
-         code='#include "mpi.h"\n'
-              '\n'
-              'int main(int argc, char *argv[])\n'
-              '{\n'
-              '  int nproc, myrank;\n'
-              '\n'
-              '  MPI_Init(&argc, &argv);\n'
-              '  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n'
-              '  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n'
-              '\n'
-              '  // Do work and pass messages...\n'
-              '\n'
-              '  MPI_Finalize();\n'
-              '\n'
-              '  return 0;\n'
-              '}',
-         code_w=1100, code_size=30),
-
-    dict(kind="code", title="Header and initialization",
-         code='#include "mpi.h"\n'
-              '\n'
-              'MPI_Init(&argc, &argv);',
-         code_size=38, code_w=1100,
-         bullets=["mpi.h defines all MPI parameters and functions, so include it in every source file that calls MPI",
-                  "MPI_Init must come before any other MPI call",
-                  "It sets up communication channels between all processes and assigns each one a rank"]),
-
-    dict(kind="code", title="How many? Who am I?",
-         code="MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
-              "MPI_Comm_rank(MPI_COMM_WORLD, &myrank);",
-         code_size=38, code_w=1100,
-         bullets=["nproc: total number of processes in MPI_COMM_WORLD, the same <processes> as in mpiexec -n <processes>",
-                  "myrank: this process's rank, a unique number that distinguishes it from every other process in the communicator"]),
-
-    dict(kind="code", title="MPI termination",
-         code="MPI_Finalize();",
-         code_size=38, code_w=1100,
-         bullets=["Call at the end, after all other MPI calls",
-                  "Closes all communication channels and cleans up; no MPI calls after this",
-                  "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument (C returns the error code)"]),
-
-    dict(kind="bullets", title="Hands-on exercise #2",
-         bullets=[
-             "Add MPI initialization, size, rank and termination calls to cpi_1.c or fpi_1.f",
-             "Build, then run in parallel again: sbatch slurm_script",
-             "Look at the new output.log: any difference from the previous parallel run?",
-             "Stuck? The answers are in cpi_2.c and fpi_2.f",
-         ], size=36),
-
-    dict(kind="bullets", title="Hands-on exercise #3",
-         bullets=[
-             "Use myrank and nproc to divide the integral evenly across all processes",
-             "Hint: change the bounds of the for / do loop (beware off-by-one errors!)",
-             "Build, run with sbatch slurm_script, and look at output.log. What do you see?",
-             "Stuck? The answers are in cpi_3.c and fpi_3.f",
-         ], size=36),
-
-    dict(kind="figure", title="What's the problem?", image="cool-hand-luke.png",
-         caption="The Captain's speech, from Cool Hand Luke (1967)"),
-
+    dict(
+        kind="bullets",
+        title="MPI communicators",
+        bullets=[
+            "A communicator identifies a group of processes",
+            "Each process has a unique rank in it: 0, 1, …, n − 1",
+            "MPI maps these abstract processes onto concrete processing units",
+            "Every communication call names a communicator",
+            "Default: MPI_COMM_WORLD, which contains all processes",
+            "A process can belong to several communicators, with a separate rank in each",
+        ],
+        size=34,
+    ),
+    dict(
+        kind="code",
+        title="Anatomy of an MPI program",
+        sub="In C",
+        code='#include "mpi.h"\n'
+        "\n"
+        "int main(int argc, char *argv[])\n"
+        "{\n"
+        "  int nproc, myrank;\n"
+        "\n"
+        "  MPI_Init(&argc, &argv);\n"
+        "  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+        "  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+        "\n"
+        "  // Do work and pass messages...\n"
+        "\n"
+        "  MPI_Finalize();\n"
+        "\n"
+        "  return 0;\n"
+        "}",
+        code_w=1100,
+        code_size=30,
+    ),
+    dict(
+        kind="code",
+        title="Header and initialization",
+        code='#include "mpi.h"\n\nMPI_Init(&argc, &argv);',
+        code_size=38,
+        code_w=1100,
+        bullets=[
+            "mpi.h defines all MPI parameters and functions, so include it in every source file that calls MPI",
+            "MPI_Init must come before any other MPI call",
+            "It sets up communication channels between all processes and assigns each one a rank",
+        ],
+    ),
+    dict(
+        kind="code",
+        title="How many? Who am I?",
+        code="MPI_Comm_size(MPI_COMM_WORLD, &nproc);\nMPI_Comm_rank(MPI_COMM_WORLD, &myrank);",
+        code_size=38,
+        code_w=1100,
+        bullets=[
+            "nproc: total number of processes in MPI_COMM_WORLD, the same <processes> as in mpiexec -n <processes>",
+            "myrank: this process's rank, a unique number that distinguishes it from every other process in the communicator",
+        ],
+    ),
+    dict(
+        kind="code",
+        title="MPI termination",
+        code="MPI_Finalize();",
+        code_size=38,
+        code_w=1100,
+        bullets=[
+            "Call at the end, after all other MPI calls",
+            "Closes all communication channels and cleans up; no MPI calls after this",
+            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument (C returns the error code)",
+        ],
+    ),
+    dict(
+        kind="bullets",
+        title="Hands-on exercise #2",
+        bullets=[
+            "Add MPI initialization, size, rank and termination calls to cpi_1.c or fpi_1.f",
+            "Build, then run in parallel again: sbatch slurm_script",
+            "Look at the new output.log: any difference from the previous parallel run?",
+            "Stuck? The answers are in cpi_2.c and fpi_2.f",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="bullets",
+        title="Hands-on exercise #3",
+        bullets=[
+            "Use myrank and nproc to divide the integral evenly across all processes",
+            "Hint: change the bounds of the for / do loop (beware off-by-one errors!)",
+            "Build, run with sbatch slurm_script, and look at output.log. What do you see?",
+            "Stuck? The answers are in cpi_3.c and fpi_3.f",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="figure",
+        title="What's the problem?",
+        image="cool-hand-luke.png",
+        caption="The Captain's speech, from Cool Hand Luke (1967)",
+    ),
     # --------------------------------------------------------- communication
     dict(kind="section", title="Communication"),
-
-    dict(kind="bullets", title="Data exchange in MPI", sub="Two basic modes",
-         bullets=[
-             "Point-to-point: exactly two processes exchange data. This is the building block for every other MPI call",
-             "Collective: one call handles communication among all processes in a communicator",
-             "Three kinds of collectives: data movement (MPI_Bcast), reduction (MPI_Reduce) and synchronization (MPI_Barrier)",
-         ], size=36),
-
-    dict(kind="code", title="Point-to-point communication", sub="Blocking send and receive",
-         code="int MPI_Send(buf, count, datatype, dest, tag, comm)\n"
-              "\n"
-              "int MPI_Recv(buf, count, datatype, source, tag, comm, status)\n"
-              "\n"
-              "// send + receive combined in one blocking call\n"
-              "int MPI_Sendrecv(sendbuf, sendcount, sendtype, dest, sendtag,\n"
-              "                 recvbuf, recvcount, recvtype, source, recvtag,\n"
-              "                 comm, status)",
-         code_size=32),
-
-    dict(kind="bullets", title="Point-to-point arguments",
-         bullets=[
-             "buf: pointer to the data being sent or received",
-             "datatype in C: MPI_INT, MPI_LONG, MPI_SHORT, MPI_FLOAT, MPI_DOUBLE, …",
-             "datatype in Fortran: MPI_INTEGER, MPI_REAL, MPI_DOUBLE_PRECISION, MPI_COMPLEX, MPI_CHARACTER, MPI_LOGICAL, …",
-             "comm: usually MPI_COMM_WORLD",
-             "Fortran versions take an extra ierr argument; in C it's the return value",
-         ], size=34),
-
-    dict(kind="split", title="MPI_PROC_NULL",
-         bullets=["A “do nothing” source or destination for MPI_Send, MPI_Recv and MPI_Sendrecv",
-                  "Behaves as if the call were wrapped in a check"],
-         code="// C\n"
-              "if (dest != MPI_PROC_NULL) {\n"
-              "  MPI_Send(..., dest, ...);\n"
-              "}\n"
-              "\n"
-              "! Fortran\n"
-              "if (dest .ne. MPI_PROC_NULL) then\n"
-              "  call MPI_SEND(..., dest, ...)\n"
-              "end if",
-         code_w=900),
-
-    dict(kind="figure", title="Reduction", sub="A root process collects data from all processes and combines it",
-         code="int MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm)",
-         image="mpi-reduce.png", caption="MPI_Reduce with the MPI_SUM operation"),
-
-    dict(kind="bullets", title="Reduction",
-         bullets=[
-             "Called by every process in the communicator, with identical arguments",
-             "Operations: MPI_SUM, MPI_MIN, MPI_MAX, MPI_PROD, logical AND, OR, XOR, and more",
-             "Define your own with MPI_Op_create()",
-         ]),
-
-    dict(kind="figure", title="Reduction to all", sub="Every process receives the combined result",
-         code="int MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)",
-         image="mpi-allreduce.png", caption="MPI_Allreduce with the MPI_SUM operation"),
-
-    dict(kind="figpair", title="Reduction to all", sub="The algorithm matters",
-         lines=["Called by all processes with identical arguments; same operations as MPI_Reduce",
-                "The reduction algorithm used has a big impact on efficiency"],
-         images=[("reduce-naive.png", "Direct but inefficient MPI_MAX reduction"),
-                 ("reduce-tree.png", "Reduction tree: data from n − 1 processes in log(n) steps")]),
-
-    dict(kind="figure", title="Broadcast", sub="A root process sends the same data to every process",
-         code="int MPI_Bcast(buffer, count, datatype, root, comm)",
-         image="mpi-bcast.png", caption="MPI_Bcast",
-         after="Called by all processes in the communicator, with identical arguments"),
-
-    dict(kind="figure", title="Gather", sub="A root process collects data from every process",
-         code="int MPI_Gather(sendbuf, sendcount, sendtype,\n"
-              "               recvbuf, recvcount, recvtype, root, comm)",
-         image="mpi-gather.png", caption="MPI_Gather with sendcount = 1"),
-
-    dict(kind="bullets", title="Gather",
-         bullets=[
-             "Called by all processes in the communicator, with identical arguments",
-             "sendcount is the number of elements sent by each process, not the number the root receives (1 in the previous example)",
-             "The receive buffer must have room for at least sendcount × nproc elements",
-         ]),
-
-    dict(kind="figure", title="Gather to all", sub="Every process ends up with everyone's data",
-         code="int MPI_Allgather(sendbuf, sendcount, sendtype,\n"
-              "                  recvbuf, recvcount, recvtype, comm)",
-         image="mpi-allgather.png", caption="MPI_Allgather with sendcount = 1"),
-
-    dict(kind="bullets", title="Gather to all",
-         bullets=[
-             "Called by all processes in the communicator, with identical arguments",
-             "Again, sendcount is the number of elements sent, not received",
-             "Again, the receive buffer needs room for at least sendcount × nproc elements",
-         ]),
-
-    dict(kind="flow", title="Scatter and all-to-all",
-         blocks=[
-             ("text", "Scatter: a root sends a different piece of data to each process (the opposite of gather)"),
-             ("code", "int MPI_Scatter(sendbuf, sendcount, sendtype,\n"
-                      "                recvbuf, recvcount, recvtype, root, comm)"),
-             ("text", "All-to-all: every process scatters to every other process, ordered by index"),
-             ("code", "int MPI_Alltoall(sendbuf, sendcount, sendtype,\n"
-                      "                 recvbuf, recvcount, recvtype, comm)"),
-         ]),
-
-    dict(kind="code", title="Synchronization",
-         code="int MPI_Barrier(comm)",
-         code_size=38, code_w=1100,
-         bullets=["Every process in the communicator waits until all of them reach the same point in the code",
-                  "Often very expensive: use sparingly!",
-                  "As ever, the Fortran versions take an extra ierr argument"]),
-
+    dict(
+        kind="bullets",
+        title="Data exchange in MPI",
+        sub="Two basic modes",
+        bullets=[
+            "Point-to-point: exactly two processes exchange data. This is the building block for every other MPI call",
+            "Collective: one call handles communication among all processes in a communicator",
+            "Three kinds of collectives: data movement (MPI_Bcast), reduction (MPI_Reduce) and synchronization (MPI_Barrier)",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="code",
+        title="Point-to-point communication",
+        sub="Blocking send and receive",
+        code="int MPI_Send(buf, count, datatype, dest, tag, comm)\n"
+        "\n"
+        "int MPI_Recv(buf, count, datatype, source, tag, comm, status)\n"
+        "\n"
+        "// send + receive combined in one blocking call\n"
+        "int MPI_Sendrecv(sendbuf, sendcount, sendtype, dest, sendtag,\n"
+        "                 recvbuf, recvcount, recvtype, source, recvtag,\n"
+        "                 comm, status)",
+        code_size=32,
+    ),
+    dict(
+        kind="bullets",
+        title="Point-to-point arguments",
+        bullets=[
+            "buf: pointer to the data being sent or received",
+            "datatype in C: MPI_INT, MPI_LONG, MPI_SHORT, MPI_FLOAT, MPI_DOUBLE, …",
+            "datatype in Fortran: MPI_INTEGER, MPI_REAL, MPI_DOUBLE_PRECISION, MPI_COMPLEX, MPI_CHARACTER, MPI_LOGICAL, …",
+            "comm: usually MPI_COMM_WORLD",
+            "Fortran versions take an extra ierr argument; in C it's the return value",
+        ],
+        size=34,
+    ),
+    dict(
+        kind="split",
+        title="MPI_PROC_NULL",
+        bullets=[
+            "A “do nothing” source or destination for MPI_Send, MPI_Recv and MPI_Sendrecv",
+            "Behaves as if the call were wrapped in a check",
+        ],
+        code="// C\n"
+        "if (dest != MPI_PROC_NULL) {\n"
+        "  MPI_Send(..., dest, ...);\n"
+        "}\n"
+        "\n"
+        "! Fortran\n"
+        "if (dest .ne. MPI_PROC_NULL) then\n"
+        "  call MPI_SEND(..., dest, ...)\n"
+        "end if",
+        code_w=900,
+    ),
+    dict(
+        kind="figure",
+        title="Reduction",
+        sub="A root process collects data from all processes and combines it",
+        code="int MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm)",
+        image="mpi-reduce.png",
+        caption="MPI_Reduce with the MPI_SUM operation",
+    ),
+    dict(
+        kind="bullets",
+        title="Reduction",
+        bullets=[
+            "Called by every process in the communicator, with identical arguments",
+            "Operations: MPI_SUM, MPI_MIN, MPI_MAX, MPI_PROD, logical AND, OR, XOR, and more",
+            "Define your own with MPI_Op_create()",
+        ],
+    ),
+    dict(
+        kind="figure",
+        title="Reduction to all",
+        sub="Every process receives the combined result",
+        code="int MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)",
+        image="mpi-allreduce.png",
+        caption="MPI_Allreduce with the MPI_SUM operation",
+    ),
+    dict(
+        kind="figpair",
+        title="Reduction to all",
+        sub="The algorithm matters",
+        lines=[
+            "Called by all processes with identical arguments; same operations as MPI_Reduce",
+            "The reduction algorithm used has a big impact on efficiency",
+        ],
+        images=[
+            ("reduce-naive.png", "Direct but inefficient MPI_MAX reduction"),
+            ("reduce-tree.png", "Reduction tree: data from n − 1 processes in log(n) steps"),
+        ],
+    ),
+    dict(
+        kind="figure",
+        title="Broadcast",
+        sub="A root process sends the same data to every process",
+        code="int MPI_Bcast(buffer, count, datatype, root, comm)",
+        image="mpi-bcast.png",
+        caption="MPI_Bcast",
+        after="Called by all processes in the communicator, with identical arguments",
+    ),
+    dict(
+        kind="figure",
+        title="Gather",
+        sub="A root process collects data from every process",
+        code="int MPI_Gather(sendbuf, sendcount, sendtype,\n               recvbuf, recvcount, recvtype, root, comm)",
+        image="mpi-gather.png",
+        caption="MPI_Gather with sendcount = 1",
+    ),
+    dict(
+        kind="bullets",
+        title="Gather",
+        bullets=[
+            "Called by all processes in the communicator, with identical arguments",
+            "sendcount is the number of elements sent by each process, not the number the root receives (1 in the previous example)",
+            "The receive buffer must have room for at least sendcount × nproc elements",
+        ],
+    ),
+    dict(
+        kind="figure",
+        title="Gather to all",
+        sub="Every process ends up with everyone's data",
+        code="int MPI_Allgather(sendbuf, sendcount, sendtype,\n                  recvbuf, recvcount, recvtype, comm)",
+        image="mpi-allgather.png",
+        caption="MPI_Allgather with sendcount = 1",
+    ),
+    dict(
+        kind="bullets",
+        title="Gather to all",
+        bullets=[
+            "Called by all processes in the communicator, with identical arguments",
+            "Again, sendcount is the number of elements sent, not received",
+            "Again, the receive buffer needs room for at least sendcount × nproc elements",
+        ],
+    ),
+    dict(
+        kind="flow",
+        title="Scatter and all-to-all",
+        blocks=[
+            ("text", "Scatter: a root sends a different piece of data to each process (the opposite of gather)"),
+            (
+                "code",
+                "int MPI_Scatter(sendbuf, sendcount, sendtype,\n"
+                "                recvbuf, recvcount, recvtype, root, comm)",
+            ),
+            ("text", "All-to-all: every process scatters to every other process, ordered by index"),
+            (
+                "code",
+                "int MPI_Alltoall(sendbuf, sendcount, sendtype,\n                 recvbuf, recvcount, recvtype, comm)",
+            ),
+        ],
+    ),
+    dict(
+        kind="code",
+        title="Synchronization",
+        code="int MPI_Barrier(comm)",
+        code_size=38,
+        code_w=1100,
+        bullets=[
+            "Every process in the communicator waits until all of them reach the same point in the code",
+            "Often very expensive: use sparingly!",
+            "As ever, the Fortran versions take an extra ierr argument",
+        ],
+    ),
     # ------------------------------------------------------ putting it together
     dict(kind="section", title="Putting it together"),
-
-    dict(kind="split", title="Timing your MPI code",
-         bullets=["MPI_Wtime returns the seconds elapsed since some arbitrary time in the past",
-                  "Call it at the start and end of a section; the difference is the elapsed time",
-                  "This is one place where an MPI_Barrier is typically mandatory"],
-         code="double MPI_Wtime()              // C\n"
-              "double precision MPI_WTIME()    ! Fortran\n"
-              "\n"
-              "// e.g.\n"
-              "MPI_Barrier(MPI_COMM_WORLD);\n"
-              "double t0 = MPI_Wtime();\n"
-              "/* ... work ... */\n"
-              "double elapsed = MPI_Wtime() - t0;",
-         code_w=900, size=34),
-
-    dict(kind="bullets", title="Hands-on exercise #4",
-         bullets=[
-             "Add the MPI call(s) that collect each process's piece of π and add them together",
-             "Build, run with sbatch slurm_script, and check output.log: did you get the right answer?",
-             "Which other MPI call could do this? What are the advantages of each approach?",
-             "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f and fpi_4b.f",
-         ], size=36),
-
-    dict(kind="bullets", title="Hands-on exercise #5", sub="Reading input on one process",
-         bullets=[
-             "Suppose nslices.dat is huge and we're running thousands of processes",
-             "File-system access is the slowest kind of I/O, so we don't want every process reading at once",
-             "Make only the root process (rank 0) read the file…",
-             "…then use MPI to share its contents with every process in MPI_COMM_WORLD",
-             "Stuck? See cpi_5.c and fpi_5.f",
-         ], size=34),
-
-    dict(kind="code", title="One possible solution", sub="The root reads the file, then broadcasts nslices",
-         code='if (myrank == 0) {\n'
-              '  file_ptr = fopen("nslices.dat", "r");\n'
-              '  fscanf(file_ptr, "%d", &nslices);\n'
-              '  fclose(file_ptr);\n'
-              '}\n'
-              '\n'
-              'MPI_Bcast(&nslices, 1, MPI_INT, 0, MPI_COMM_WORLD);',
-         code_size=36),
-
-    dict(kind="code", title="One possible solution", sub="Each process sums its own slices; MPI_Reduce adds them up",
-         code="for (int i = (myrank * nslices) / nproc + 1;\n"
-              "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
-              "  x = dx * ((double) i - 0.5);\n"
-              "  sum += (4.0 / (1.0 + (x * x)));\n"
-              "}\n"
-              "\n"
-              "double mypi = dx * sum;\n"
-              "double pi = 0.0;\n"
-              "MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,\n"
-              "           MPI_COMM_WORLD);",
-         code_size=34),
-
+    dict(
+        kind="split",
+        title="Timing your MPI code",
+        bullets=[
+            "MPI_Wtime returns the seconds elapsed since some arbitrary time in the past",
+            "Call it at the start and end of a section; the difference is the elapsed time",
+            "This is one place where an MPI_Barrier is typically mandatory",
+        ],
+        code="double MPI_Wtime()              // C\n"
+        "double precision MPI_WTIME()    ! Fortran\n"
+        "\n"
+        "// e.g.\n"
+        "MPI_Barrier(MPI_COMM_WORLD);\n"
+        "double t0 = MPI_Wtime();\n"
+        "/* ... work ... */\n"
+        "double elapsed = MPI_Wtime() - t0;",
+        code_w=900,
+        size=34,
+    ),
+    dict(
+        kind="bullets",
+        title="Hands-on exercise #4",
+        bullets=[
+            "Add the MPI call(s) that collect each process's piece of π and add them together",
+            "Build, run with sbatch slurm_script, and check output.log: did you get the right answer?",
+            "Which other MPI call could do this? What are the advantages of each approach?",
+            "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f and fpi_4b.f",
+        ],
+        size=36,
+    ),
+    dict(
+        kind="bullets",
+        title="Hands-on exercise #5",
+        sub="Reading input on one process",
+        bullets=[
+            "Suppose nslices.dat is huge and we're running thousands of processes",
+            "File-system access is the slowest kind of I/O, so we don't want every process reading at once",
+            "Make only the root process (rank 0) read the file…",
+            "…then use MPI to share its contents with every process in MPI_COMM_WORLD",
+            "Stuck? See cpi_5.c and fpi_5.f",
+        ],
+        size=34,
+    ),
+    dict(
+        kind="code",
+        title="One possible solution",
+        sub="The root reads the file, then broadcasts nslices",
+        code="if (myrank == 0) {\n"
+        '  file_ptr = fopen("nslices.dat", "r");\n'
+        '  fscanf(file_ptr, "%d", &nslices);\n'
+        "  fclose(file_ptr);\n"
+        "}\n"
+        "\n"
+        "MPI_Bcast(&nslices, 1, MPI_INT, 0, MPI_COMM_WORLD);",
+        code_size=36,
+    ),
+    dict(
+        kind="code",
+        title="One possible solution",
+        sub="Each process sums its own slices; MPI_Reduce adds them up",
+        code="for (int i = (myrank * nslices) / nproc + 1;\n"
+        "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "  x = dx * ((double) i - 0.5);\n"
+        "  sum += (4.0 / (1.0 + (x * x)));\n"
+        "}\n"
+        "\n"
+        "double mypi = dx * sum;\n"
+        "double pi = 0.0;\n"
+        "MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,\n"
+        "           MPI_COMM_WORLD);",
+        code_size=34,
+    ),
     # --------------------------------------------------- blocking/non-blocking
     dict(kind="section", title="Blocking and non-blocking communication"),
-
-    dict(kind="figbullets", title="Blocking communication", image="blocking.png",
-         caption="Blocking communication between two processes",
-         bullets=["Everything so far has been blocking",
-                  "A sender waits until all its data has moved from the send buffer to the system buffer",
-                  "A receiver waits until all data has moved from the system buffer to the receive buffer",
-                  "All collectives are blocking by design (with one caveat…)"]),
-
-    dict(kind="figbullets", title="Non-blocking communication", image="nonblocking.png",
-         caption="Non-blocking communication between two processes",
-         bullets=["Calls return immediately, once the transfer has started",
-                  "Often more efficient: no waiting around, and computation can overlap with communication",
-                  "But more dangerous: modify a buffer before the transfer completes and the results will (almost) always be garbage"]),
-
-    dict(kind="code", title="Non-blocking send and receive",
-         code="int MPI_Isend(buf, count, datatype, dest, tag, comm, request)\n"
-              "int MPI_Irecv(buf, count, datatype, source, tag, comm, request)\n"
-              "\n"
-              "int MPI_Test(request, flag, status)",
-         code_size=32,
-         bullets=["request identifies the send or receive operation",
-                  "MPI_Test sets flag to true if the operation has completed, false otherwise"]),
-
-    dict(kind="code", title="Waiting for completion",
-         code="int MPI_Wait(request, status)",
-         code_size=38, code_w=1100,
-         bullets=["Alternatively, check on the operation with the synchronization call MPI_Wait",
-                  "status (an MPI_Status) says whether it succeeded (MPI_SUCCESS), hit an error (MPI_ERR_IN_STATUS), etc.",
-                  "The caveat: MPI-3 also adds non-blocking collectives (e.g. MPI_Ibcast)"]),
-
+    dict(
+        kind="figbullets",
+        title="Blocking communication",
+        image="blocking.png",
+        caption="Blocking communication between two processes",
+        bullets=[
+            "Everything so far has been blocking",
+            "A sender waits until all its data has moved from the send buffer to the system buffer",
+            "A receiver waits until all data has moved from the system buffer to the receive buffer",
+            "All collectives are blocking by design (with one caveat…)",
+        ],
+    ),
+    dict(
+        kind="figbullets",
+        title="Non-blocking communication",
+        image="nonblocking.png",
+        caption="Non-blocking communication between two processes",
+        bullets=[
+            "Calls return immediately, once the transfer has started",
+            "Often more efficient: no waiting around, and computation can overlap with communication",
+            "But more dangerous: modify a buffer before the transfer completes and the results will (almost) always be garbage",
+        ],
+    ),
+    dict(
+        kind="code",
+        title="Non-blocking send and receive",
+        code="int MPI_Isend(buf, count, datatype, dest, tag, comm, request)\n"
+        "int MPI_Irecv(buf, count, datatype, source, tag, comm, request)\n"
+        "\n"
+        "int MPI_Test(request, flag, status)",
+        code_size=32,
+        bullets=[
+            "request identifies the send or receive operation",
+            "MPI_Test sets flag to true if the operation has completed, false otherwise",
+        ],
+    ),
+    dict(
+        kind="code",
+        title="Waiting for completion",
+        code="int MPI_Wait(request, status)",
+        code_size=38,
+        code_w=1100,
+        bullets=[
+            "Alternatively, check on the operation with the synchronization call MPI_Wait",
+            "status (an MPI_Status) says whether it succeeded (MPI_SUCCESS), hit an error (MPI_ERR_IN_STATUS), etc.",
+            "The caveat: MPI-3 also adds non-blocking collectives (e.g. MPI_Ibcast)",
+        ],
+    ),
     dict(kind="statement", title="Questions?"),
 ]
