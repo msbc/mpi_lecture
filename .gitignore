@@ -1,0 +1,14 @@
+# Generated deck (built from slides.py by build_keynote.py)
+Intro_MPI.key
+figures/_cards/
+
+# Source PDF (archival, not tracked for now)
+MPILecture_fall_2025_v1.pdf
+
+# Compiled exercise binaries
+Intro_MPI/Fortran/fpi_exe
+*.o
+a.out
+
+.DS_Store
+__pycache__/

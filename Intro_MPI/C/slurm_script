@@ -1,0 +1,13 @@
+#!/bin/bash
+# parallel job using 4 MPI tasks.
+#  Runs for 1 minute (max).
+#SBATCH --ntasks=4
+#SBATCH --time=00:01:00
+#SBATCH --reservation=bootcamp2
+
+module load intel-oneapi/2024.2
+module load intel-mpi/oneapi/2021.13
+
+rm -f output.log
+
+srun ./cpi_exe >& output.log
