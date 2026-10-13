@@ -1,13 +1,15 @@
 #!/bin/bash
-# parallel job using 4 MPI tasks.
-#  Runs for 1 minute (max).
+# Parallel job using 4 MPI tasks on one node.
+# Runs for 1 minute (max). Output and errors go to output.log.
+#SBATCH --job-name=cpi
+#SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --time=00:01:00
+#SBATCH --output=output.log
 #SBATCH --reservation=bootcamp2
 
+module purge
 module load intel-oneapi/2024.2
 module load intel-mpi/oneapi/2021.13
 
-rm -f output.log
-
-srun ./cpi_exe >& output.log
+srun ./pi

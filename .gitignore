@@ -6,8 +6,8 @@ figures/_cards/
 MPILecture_fall_2025_v1.pdf
 
 # Compiled exercise binaries
-Intro_MPI/Fortran/fpi_exe
-Intro_MPI/C/cpi_exe
+Intro_MPI/Fortran/pi
+Intro_MPI/C/pi
 *.dSYM/
 *.mod
 *.o

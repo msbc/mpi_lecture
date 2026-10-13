@@ -1,7 +1,8 @@
 # Use "make example_name" to compile any example in this directory
-# This will create an executable called "fpi_exe".
+# This will create an executable called "pi" (change it with EXE=name).
 # ex.   make fpi_5
 #
+EXE    = pi
 FC     = mpif90
 FFLAGS = -O2 -g
 
@@ -13,9 +14,9 @@ else
 endif
 
 % : %.f90
-	$(FC) $(FFLAGS) $< -o fpi_exe
+	$(FC) $(FFLAGS) $< -o $(EXE)
 
 clean:
-	rm -f fpi_exe *.mod
+	rm -f $(EXE) *.mod
 
 .PHONY: clean
