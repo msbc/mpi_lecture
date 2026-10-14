@@ -82,8 +82,12 @@ SLIDES = [
         kind="figure",
         title="Splitting the work",
         sub="Domain decomposition: grid-based codes (time integrators, hyperbolic solvers)",
-        image="domain-decomposition.png",
-        caption="Domain decomposition in SUNDIALS (Suite of Nonlinear and Differential/Algebraic equation Solvers)",
+        image="athenak-meshblocks.png",
+        caption="AthenaK MeshBlocks (white lines) on an adaptive mesh, shared across MPI ranks (Stone et al. 2024)",
+        notes="Figure 10 of Stone et al. 2024, 'AthenaK: A Performance-Portable Version of the Athena++ AMR "
+        "Framework' (arXiv:2409.16053): logarithmic density in the weak-field (left) and strong-field (right) "
+        "Komissarov cylindrical explosion tests, run on an AMR grid with pressure-based refinement. White lines "
+        "denote 20 × 20 MeshBlock boundaries.",
     ),
     dict(
         kind="figure",
