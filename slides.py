@@ -19,13 +19,13 @@ SLIDES = [
         title="Why parallel computing?",
         bullets=[
             "Time, funding and patience are finite: faster calculations are good",
-            "Running n copies of a code on one shared-memory node is already parallel (e.g. OpenMP)",
+            "Running independent copies of a code is already parallel; threads (e.g. OpenMP) can share work within one node",
             "But what if the problem doesn't fit in one node's memory?",
             "Goal: split the work across many cores that cooperate, exchanging data as needed",
         ],
         notes="Human patience/funding/lifespan is finite: speeding up calculations is good. "
-        "Can't we just run n instances of the same code? That's technically parallel computing - "
-        "this is, for example, what OpenMP directives do on a shared-memory node. "
+        "Can't we just run n instances of the same code? That's technically parallel computing, "
+        "and threads (e.g. OpenMP directives) can share the work within a shared-memory node. "
         "But what if your problem is too large to fit into the memory of a single compute node? "
         "What if you want to use all those extra cores on your multicore processor? "
         "Ideally, we want to divide up the work between several processor cores so that they can "
@@ -48,7 +48,7 @@ SLIDES = [
                 [
                     "SPMD with globally addressable memory (PGAS)",
                     "Coarray Fortran (Fortran 2008)",
-                    "Unified Parallel C (UPC)",
+                    "OpenSHMEM, UPC++, Chapel",
                 ],
             ),
             (
@@ -65,7 +65,7 @@ SLIDES = [
         "one must explicitly manage each thread's access to memory); GPGPU programming libraries like "
         "CUDA, OpenACC (also supports CPUs) and OpenMP (also supports CPUs). "
         "Partitioned global address space: one approach to SPMD parallelism, using globally-addressable "
-        "memory. Languages include Coarray Fortran/CAF (Fortran 2008) and Unified Parallel C/UPC.",
+        "memory. Examples include Coarray Fortran/CAF (Fortran 2008), OpenSHMEM, UPC++ and Chapel.",
     ),
     dict(
         kind="bullets",
@@ -104,9 +104,9 @@ SLIDES = [
         title="What is MPI?",
         bullets=[
             "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's highly portable",
-            "In practice: a library of C functions and Fortran subroutines for exchanging data between processes",
+            "In practice: a library of C functions and Fortran subroutines for exchanging data between processes (C++ uses the C functions)",
             "Not limited by the number of cores in one node, unlike shared-memory models",
-            "Bindings for Python (mpi4py), R (Rmpi), Julia (MPI.jl), Lua (lua-mpi)…: if it can call C, it can run MPI",
+            "Bindings for Python (mpi4py), Julia (MPI.jl), Rust (rsmpi), R (pbdMPI)…: if it can call C, it can run MPI",
         ],
         size=36,
     ),
@@ -114,7 +114,7 @@ SLIDES = [
         kind="bullets",
         title="Is it difficult?",
         bullets=[
-            "About 400 functions, but you can do everything with just 6 (though the code may be hard to read)",
+            "Hundreds of functions, but you can do everything with just 6 (though the code may be hard to read)",
             "Collective operations simplify code a lot, and vendors optimize them for their interconnects",
             "You don't need to master all of MPI to use it well",
             "How you split up the work matters much more, and is much harder",
@@ -142,9 +142,9 @@ SLIDES = [
         kind="code",
         title="Compiling and linking",
         sub="Step 2: use the MPI compiler wrappers",
-        code="mpicc  mpi_code.c   -o code.o    # C\n"
-        "mpicxx mpi_code.cpp -o code.o    # C++\n"
-        "mpif90 mpi_code.f90 -o code.o    # Fortran 90\n"
+        code="mpicc  mpi_code.c   -o code    # C\n"
+        "mpicxx mpi_code.cpp -o code    # C++\n"
+        "mpif90 mpi_code.f90 -o code    # Fortran\n"
         "\n"
         "mpicc -show    # print the full underlying compile command",
         code_size=36,
@@ -152,21 +152,24 @@ SLIDES = [
     dict(
         kind="split",
         title="Writing a Makefile",
-        bullets=["We're lazy: we'd rather not compile and link by hand", "Let make do it for us"],
-        code="CC = mpicc\nCFLAGS = -O\n\n%: %.c\n\t$(CC) $(CFLAGS) $< -o $@",
+        bullets=[
+            "We're lazy: we'd rather not compile and link by hand",
+            "Let make do it for us",
+            "The exercise Makefiles also pick flags to suit the compiler that mpicc calls",
+        ],
+        code="CC     = mpicc\nCFLAGS = -O2 -g -Wall -Wextra -std=c99\nLDLIBS = -lm\n\n% : %.c\n\t$(CC) $(CFLAGS) $< -o pi $(LDLIBS)",
         code_w=900,
-        code_size=40,
     ),
     dict(
         kind="code",
         title="Running an MPI executable",
         sub="Every MPI implementation provides a launcher",
         code="# MPICH or OpenMPI\n"
-        "mpirun -np <processes> code.o\n"
-        "mpiexec -n <processes> code.o\n"
+        "mpirun -np <processes> ./code\n"
+        "mpiexec -n <processes> ./code\n"
         "\n"
         "# Slurm workload manager (e.g. Princeton clusters)\n"
-        "srun -n <processes> code.o",
+        "srun -n <processes> ./code",
         code_size=38,
     ),
     dict(
@@ -176,9 +179,10 @@ SLIDES = [
             "An identical copy of the program starts on each core, in its own OS process with a private address space",
             "Each process works on a subset of the problem, exchanging data as needed",
             "Data moves over the network interconnect (distributed memory) or through shared memory (e.g. SMP nodes)",
-            "Good for coarse-grained parallelism: high scalability, low communication and synchronization overhead, but poor load balancing",
+            "Suits coarse-grained parallelism: it scales well, but balancing the load is up to you",
+            "Most codes today are hybrid, MPI + X: MPI between nodes, plus OpenMP threads or GPUs within each node",
         ],
-        size=36,
+        size=34,
     ),
     dict(
         kind="code",
@@ -188,12 +192,12 @@ SLIDES = [
         "#SBATCH -N 2\n"
         "#SBATCH --ntasks-per-node=8\n"
         "#SBATCH -t 4:00:00\n"
-        "#SBATCH --mail-type=begin\n"
-        "#SBATCH --mail-type=end\n"
+        "#SBATCH --mail-type=begin,end\n"
         "#SBATCH --mail-user=<netID>@princeton.edu\n"
         "\n"
+        "module purge\n"
         "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
-        "srun ./code.o",
+        "srun ./code",
         code_size=34,
     ),
     dict(
@@ -201,8 +205,8 @@ SLIDES = [
         title="The Slurm workload manager",
         sub="Submitting and managing jobs",
         code="sbatch <script>     # submit a job\n"
-        "squeue -a          # check the status of (all) jobs in the queue\n"
-        "scancel <jobID>    # cancel a job",
+        "squeue --me         # check the status of your jobs\n"
+        "scancel <jobID>     # cancel a job",
         code_size=38,
     ),
     # ------------------------------------------------------------ pi example
@@ -238,75 +242,76 @@ SLIDES = [
         kind="twocode",
         title="Serial π in C",
         sub="cpi_1.c",
-        left="#include <stdio.h>\n"
-        "#include <math.h>\n"
-        "\n"
-        "int main(int argc, char *argv[])\n"
-        "{\n"
-        "  FILE *file_ptr;\n"
-        '  file_ptr = fopen("nslices.dat", "r");\n'
-        "  int nslices;\n"
-        '  fscanf(file_ptr, "%d", &nslices);\n'
-        "  fclose(file_ptr);\n"
+        left="int main() {\n"
+        '  int nslices = read_nslices("nslices.dat");\n'
+        "  if (nslices <= 0) {\n"
+        '    fprintf(stderr, "Could not read a positive "\n'
+        '                    "number from nslices.dat\\n");\n'
+        "    return 1;\n"
+        "  }\n"
         '  printf("Number of intervals = %d.\\n",\n'
         "         nslices);\n"
         "\n"
-        "  double dx = 1.0 / (double) nslices;\n"
+        "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;",
         right="  double x;\n"
         "  for (int i = 1; i <= nslices; i++) {\n"
-        "    x = dx * ((double) i - 0.5);\n"
+        "    x = dx * ((double)i - 0.5);\n"
         "    sum += (4.0 / (1.0 + (x * x)));\n"
         "  }\n"
         "\n"
         "  double pi = dx * sum;\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f.\\n", pi,\n'
+        '         "with error %.16f\\n", pi,\n'
         "         fabs(pi - 3.141592653589793238462643));\n"
         "\n"
         "  return 0;\n"
         "}",
+        notes="read_nslices(), at the top of cpi_1.c, reads nslices.dat and returns -1 if it can't. "
+        "Long strings are split across lines for display.",
     ),
     dict(
         kind="twocode",
         title="Serial π in Fortran",
-        sub="fpi_1.f",
+        sub="fpi_1.f90",
         left="program piapprox\n"
-        "  double precision dx, sum, x, pi, err\n"
-        "  integer nslices, i, ierr\n"
+        "  implicit none\n"
+        "  integer, parameter :: dp = kind(1.0d0)\n"
+        "  real(dp), parameter :: &\n"
+        "    PI25DT = 3.141592653589793238462643_dp\n"
+        "  real(dp) :: dx, sum, x, pi\n"
+        "  integer :: nslices, i\n"
         "\n"
-        "  open(12, file='nslices.dat', status='old')\n"
-        "  read(12,*) nslices\n"
+        '  open(unit=12, file="nslices.dat", &\n'
+        '       status="old", action="read")\n'
+        "  read(12, *) nslices\n"
         "  close(12)\n"
-        "  write(*,*) 'Number of intervals = ',\n"
-        "             nslices\n"
-        "\n"
-        "  dx = 1.0d0 / nslices\n"
-        "  sum = 0.0d0",
-        right="  do i = 1, nslices\n"
-        "    x = dx * (dble(i) - 0.5d0)\n"
-        "    sum = sum + 4.0d0 / (1.0d0 + (x * x))\n"
+        '  write(*, *) "  Number of intervals = ", nslices',
+        right="  dx = 1.0_dp / nslices\n"
+        "  sum = 0.0_dp\n"
+        "  do i = 1, nslices\n"
+        "    x = dx * (real(i, dp) - 0.5_dp)\n"
+        "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
         "  end do\n"
         "\n"
         "  pi = dx * sum\n"
-        "  err = abs(pi - 3.141592653589793238462643d0)\n"
-        "  write(*,*) 'Pi is approximately ', pi,\n"
-        "             ', with error ', err\n"
-        "end",
-        notes="Line breaks inside write statements are for display only; see fpi_1.f for the exact source.",
+        '  write(*, *) " Pi=", pi, ", Error=", &\n'
+        "              abs(pi - PI25DT)\n"
+        "end program piapprox",
+        notes="Long lines are continued with & for display; otherwise this is fpi_1.f90 exactly.",
     ),
     dict(
         kind="code",
         title="Hands-on exercise #1",
         sub="Setting up",
         code="# 1. Log in to Adroit\n"
-        "ssh -X <netID>@adroit.princeton.edu\n"
+        "ssh <netID>@adroit.princeton.edu\n"
         "\n"
         "# 2. Load the Intel compiler and MPI library\n"
         "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
         "\n"
         "# 3. Copy the exercise files (don't forget the final dot!)\n"
-        "cp -r /home/jg5510/Intro_MPI .\n"
+        "cp -r /home/msbc/Intro_MPI .\n"
         "\n"
         "# 4. Pick your language\n"
         "cd Intro_MPI/C        # or: cd Intro_MPI/Fortran",
@@ -318,11 +323,11 @@ SLIDES = [
         sub="Build and run",
         bullets=[
             "Skim the Makefile and slurm_script (both deliberately simple)",
-            "Look at cpi_1.c or fpi_1.f: the code from the previous slides",
+            "Look at cpi_1.c or fpi_1.f90: the code from the previous slides",
             "Build it, run it in serial, then run it in parallel with Slurm",
             "Check output.log: how do the serial and parallel runs differ?",
         ],
-        code="make cpi_1    # or: make fpi_1\n./cpi_exe     # or: ./fpi_exe\n\nsbatch slurm_script",
+        code="make cpi_1    # or: make fpi_1\n./pi\n\nsbatch slurm_script",
         code_w=760,
         size=34,
     ),
@@ -345,7 +350,7 @@ SLIDES = [
         kind="code",
         title="Anatomy of an MPI program",
         sub="In C",
-        code='#include "mpi.h"\n'
+        code="#include <mpi.h>\n"
         "\n"
         "int main(int argc, char *argv[])\n"
         "{\n"
@@ -367,7 +372,7 @@ SLIDES = [
     dict(
         kind="code",
         title="Header and initialization",
-        code='#include "mpi.h"\n\nMPI_Init(&argc, &argv);',
+        code="#include <mpi.h>\n\nMPI_Init(&argc, &argv);",
         code_size=38,
         code_w=1100,
         bullets=[
@@ -403,10 +408,10 @@ SLIDES = [
         kind="bullets",
         title="Hands-on exercise #2",
         bullets=[
-            "Add MPI initialization, size, rank and termination calls to cpi_1.c or fpi_1.f",
+            "Add MPI initialization, size, rank and termination calls to cpi_1.c or fpi_1.f90",
             "Build, then run in parallel again: sbatch slurm_script",
             "Look at the new output.log: any difference from the previous parallel run?",
-            "Stuck? The answers are in cpi_2.c and fpi_2.f",
+            "Stuck? The answers are in cpi_2.c and fpi_2.f90",
         ],
         size=36,
     ),
@@ -417,7 +422,7 @@ SLIDES = [
             "Use myrank and nproc to divide the integral evenly across all processes",
             "Hint: change the bounds of the for / do loop (beware off-by-one errors!)",
             "Build, run with sbatch slurm_script, and look at output.log. What do you see?",
-            "Stuck? The answers are in cpi_3.c and fpi_3.f",
+            "Stuck? The answers are in cpi_3.c and fpi_3.f90",
         ],
         size=36,
     ),
@@ -496,9 +501,10 @@ SLIDES = [
         kind="bullets",
         title="Reduction",
         bullets=[
-            "Called by every process in the communicator, with identical arguments",
+            "Called by every process in the communicator, with matching arguments (the same count, datatype, op and root)",
             "Operations: MPI_SUM, MPI_MIN, MPI_MAX, MPI_PROD, logical AND, OR, XOR, and more",
             "Define your own with MPI_Op_create()",
+            "Floating-point results can differ slightly between runs or process counts, because the order of additions changes",
         ],
     ),
     dict(
@@ -514,7 +520,7 @@ SLIDES = [
         title="Reduction to all",
         sub="The algorithm matters",
         lines=[
-            "Called by all processes with identical arguments; same operations as MPI_Reduce",
+            "Called by all processes with matching arguments; same operations as MPI_Reduce",
             "The reduction algorithm used has a big impact on efficiency",
         ],
         images=[
@@ -529,7 +535,7 @@ SLIDES = [
         code="int MPI_Bcast(buffer, count, datatype, root, comm)",
         image="mpi-bcast.png",
         caption="MPI_Bcast",
-        after="Called by all processes in the communicator, with identical arguments",
+        after="Called by all processes in the communicator, with matching arguments (the same root, count and datatype)",
     ),
     dict(
         kind="figure",
@@ -543,7 +549,7 @@ SLIDES = [
         kind="bullets",
         title="Gather",
         bullets=[
-            "Called by all processes in the communicator, with identical arguments",
+            "Called by all processes in the communicator, with matching arguments",
             "sendcount is the number of elements sent by each process, not the number the root receives (1 in the previous example)",
             "The receive buffer must have room for at least sendcount × nproc elements",
         ],
@@ -560,7 +566,7 @@ SLIDES = [
         kind="bullets",
         title="Gather to all",
         bullets=[
-            "Called by all processes in the communicator, with identical arguments",
+            "Called by all processes in the communicator, with matching arguments",
             "Again, sendcount is the number of elements sent, not received",
             "Again, the receive buffer needs room for at least sendcount × nproc elements",
         ],
@@ -622,7 +628,7 @@ SLIDES = [
             "Add the MPI call(s) that collect each process's piece of π and add them together",
             "Build, run with sbatch slurm_script, and check output.log: did you get the right answer?",
             "Which other MPI call could do this? What are the advantages of each approach?",
-            "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f and fpi_4b.f",
+            "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f90 and fpi_4b.f90",
         ],
         size=36,
     ),
@@ -635,7 +641,7 @@ SLIDES = [
             "File-system access is the slowest kind of I/O, so we don't want every process reading at once",
             "Make only the root process (rank 0) read the file…",
             "…then use MPI to share its contents with every process in MPI_COMM_WORLD",
-            "Stuck? See cpi_5.c and fpi_5.f",
+            "Stuck? See cpi_5.c and fpi_5.f90",
         ],
         size=34,
     ),
@@ -644,29 +650,35 @@ SLIDES = [
         title="One possible solution",
         sub="The root reads the file, then broadcasts nslices",
         code="if (myrank == 0) {\n"
-        '  file_ptr = fopen("nslices.dat", "r");\n'
-        '  fscanf(file_ptr, "%d", &nslices);\n'
-        "  fclose(file_ptr);\n"
+        '  nslices = read_nslices("nslices.dat");\n'
+        "  if (nslices <= 0) {\n"
+        '    fprintf(stderr, "Could not read a positive number "\n'
+        '                    "from nslices.dat\\n");\n'
+        "    MPI_Abort(MPI_COMM_WORLD, 1);\n"
+        "  }\n"
         "}\n"
         "\n"
         "MPI_Bcast(&nslices, 1, MPI_INT, 0, MPI_COMM_WORLD);",
-        code_size=36,
+        code_size=32,
+        bullets=["MPI_Abort stops every process, not just the one that hit the error"],
     ),
     dict(
         kind="code",
         title="One possible solution",
-        sub="Each process sums its own slices; MPI_Reduce adds them up",
-        code="for (int i = (myrank * nslices) / nproc + 1;\n"
+        sub="Each process sums its own slices; MPI_Allreduce adds them up",
+        code="for (int i = ((myrank * nslices) / nproc) + 1;\n"
         "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
-        "  x = dx * ((double) i - 0.5);\n"
+        "  x = dx * ((double)i - 0.5);\n"
         "  sum += (4.0 / (1.0 + (x * x)));\n"
         "}\n"
         "\n"
         "double mypi = dx * sum;\n"
         "double pi = 0.0;\n"
-        "MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,\n"
-        "           MPI_COMM_WORLD);",
+        "MPI_Allreduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM,\n"
+        "              MPI_COMM_WORLD);",
         code_size=34,
+        notes="For very large runs, myrank * nslices overflows an int (past about 2 billion); "
+        "use long long for the loop bounds there.",
     ),
     # --------------------------------------------------- blocking/non-blocking
     dict(kind="section", title="Blocking and non-blocking communication"),
@@ -676,9 +688,9 @@ SLIDES = [
         image="blocking.png",
         caption="Blocking communication between two processes",
         bullets=[
-            "Everything so far has been blocking",
-            "A sender waits until all its data has moved from the send buffer to the system buffer",
-            "A receiver waits until all data has moved from the system buffer to the receive buffer",
+            "Everything so far has been blocking: a call returns once its buffer is safe to use",
+            "MPI_Send may return once the data is copied to a system buffer, or wait until the matching receive starts",
+            "So two processes that both send first can deadlock: use MPI_Sendrecv, or non-blocking calls",
             "All collectives are blocking by design (with one caveat…)",
         ],
     ),
@@ -688,8 +700,8 @@ SLIDES = [
         image="nonblocking.png",
         caption="Non-blocking communication between two processes",
         bullets=[
-            "Calls return immediately, once the transfer has started",
-            "Often more efficient: no waiting around, and computation can overlap with communication",
+            "Calls return immediately; the transfer may not even have started",
+            "Computation can overlap with communication, but only if the MPI library moves data in the background",
             "But more dangerous: modify a buffer before the transfer completes and the results will (almost) always be garbage",
         ],
     ),
@@ -709,14 +721,27 @@ SLIDES = [
     dict(
         kind="code",
         title="Waiting for completion",
-        code="int MPI_Wait(request, status)",
-        code_size=38,
+        code="int MPI_Wait(request, status)\nint MPI_Waitall(count, requests, statuses)",
+        code_size=36,
         code_w=1100,
         bullets=[
-            "Alternatively, check on the operation with the synchronization call MPI_Wait",
-            "status (an MPI_Status) says whether it succeeded (MPI_SUCCESS), hit an error (MPI_ERR_IN_STATUS), etc.",
+            "Alternatively, block until the operation completes with MPI_Wait, or MPI_Waitall for several at once",
+            "status says which source and tag a message came from; pass MPI_STATUS_IGNORE if you don't need it",
             "The caveat: MPI-3 also adds non-blocking collectives (e.g. MPI_Ibcast)",
         ],
+    ),
+    dict(
+        kind="bullets",
+        title="Where next?",
+        bullets=[
+            "Grids and halo exchange: MPI_Cart_create and neighbor collectives (MPI_Neighbor_alltoall)",
+            "Your own communicators: MPI_Comm_split, and MPI_Comm_split_type for processes sharing a node",
+            "Derived datatypes, for sending non-contiguous data",
+            "Parallel I/O: MPI-IO, or parallel HDF5",
+            "Hybrid MPI + X: MPI_Init_thread with OpenMP threads, and GPU-aware MPI",
+            "Newer standards: MPI-4 (large counts, persistent collectives, sessions) and MPI-5 (a standard ABI)",
+        ],
+        size=32,
     ),
     dict(kind="statement", title="Questions?"),
 ]
