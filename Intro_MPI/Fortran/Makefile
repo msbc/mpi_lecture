@@ -2,21 +2,22 @@
 # This will create an executable called "pi" (change it with EXE=name).
 # ex.   make fpi_5
 #
-EXE    = pi
-FC     = mpif90
-FFLAGS = -O2 -g
+# Compiler flags come from ../mk/<compiler>.mk, picked to match the compiler
+# that mpif90 calls. Override with COMPILER=gnu, intel or clang.
+#
+EXE = pi
+FC  = mpif90
 
-# Warning and standard-checking flags differ between gfortran and Intel ifx
-ifneq (,$(findstring GNU,$(shell $(FC) --version 2>&1)))
-  FFLAGS += -Wall -Wextra -std=f2018
-else
-  FFLAGS += -warn all -stand f18
-endif
+COMPILER_VERSION := $(shell $(FC) --version 2>&1)
+include ../mk/select.mk
+
+usage:
+	@echo "Usage: make <example>, e.g. make fpi_5"
 
 % : %.f90
 	$(FC) $(FFLAGS) $< -o $(EXE)
 
 clean:
-	rm -f $(EXE) *.mod
+	rm -rf $(EXE) $(EXE).dSYM *.mod
 
-.PHONY: clean
+.PHONY: usage clean
