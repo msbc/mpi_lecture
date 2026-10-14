@@ -12,6 +12,7 @@ Intro_MPI/C/pi
 
 # Compilation database for clang-tidy/clangd (machine-specific paths)
 compile_commands.json
+.bear/
 *.mod
 *.o
 a.out

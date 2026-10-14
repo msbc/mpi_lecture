@@ -1,3 +1,4 @@
 # Fortitude (Fortran linter) configuration: https://fortitude.readthedocs.io
 [check]
 line-length = 90  # match ColumnLimit in .clang-format
+target-std = "f2008"  # match -std=f2008 in Intro_MPI/mk/gnu.mk

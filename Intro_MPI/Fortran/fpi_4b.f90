@@ -1,7 +1,7 @@
 program piapprox
   use mpi, only: MPI_ALLREDUCE, MPI_COMM_RANK, MPI_COMM_SIZE, MPI_COMM_WORLD, &
                  MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_SUM
-  implicit none (type, external)
+  implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: dx, sum, x, pi, mypi

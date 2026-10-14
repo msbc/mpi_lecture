@@ -1,5 +1,5 @@
 program piapprox
-  implicit none (type, external)
+  implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: dx, sum, x, pi

@@ -1,6 +1,6 @@
 program main
   use mpi, only: MPI_COMM_RANK, MPI_COMM_SIZE, MPI_COMM_WORLD, MPI_FINALIZE, MPI_INIT
-  implicit none (type, external)
+  implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x

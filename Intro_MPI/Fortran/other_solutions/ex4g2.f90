@@ -4,7 +4,7 @@ program main
   use mpi, only: MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_INTEGER, &
                  MPI_STATUS_SIZE, PMPI_COMM_RANK, PMPI_COMM_SIZE, PMPI_FINALIZE, &
                  PMPI_INIT, PMPI_RECV, PMPI_SEND, PMPI_WTIME
-  implicit none (type, external)
+  implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x, pi_frac

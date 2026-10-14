@@ -3,7 +3,7 @@ program main
                  MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_INTEGER, MPI_ISEND, &
                  MPI_RECV, MPI_STATUSES_IGNORE, MPI_STATUS_IGNORE, MPI_STATUS_SIZE, &
                  MPI_WAIT, MPI_WAITALL, MPI_WTIME
-  implicit none (type, external)
+  implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x, pi_frac

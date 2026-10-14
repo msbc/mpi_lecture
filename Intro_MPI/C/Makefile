@@ -32,6 +32,7 @@ SRCS = $(wildcard *.c other_solutions/*.c)
 # Use bear to generate a compile_commands.json file for clang-tidy and clangd.
 compile_commands.json: Makefile $(SRCS)
 	bear -- $(MAKE) -s $(SRCS:.c=)
+	rm -rf .bear
 	rm -rf $(EXE) $(EXE).dSYM
 
 clean:
