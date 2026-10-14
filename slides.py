@@ -19,7 +19,8 @@ SLIDES = [
         title="Why parallel computing?",
         bullets=[
             "Time, funding and patience are finite: faster calculations are good",
-            "Running independent copies of a code is already parallel; threads (e.g. OpenMP) can share work within one node",
+            "Running independent copies of a code is already parallel; threads (e.g. OpenMP) can share work within "
+            "one node",
             "But what if the problem doesn't fit in one node's memory?",
             "Goal: split the work across many cores that cooperate, exchanging data as needed",
         ],
@@ -71,9 +72,11 @@ SLIDES = [
         kind="bullets",
         title="The need for message passing",
         bullets=[
-            "Distributed memory: each process has its own virtual memory and can't directly access the memory of others",
+            "Distributed memory: each process has its own virtual memory and can't directly access the memory of "
+            "others",
             "The same executable runs on every process; shared data must be sent explicitly",
-            "SPMD (Single Program, Multiple Data): every process runs the same instructions asynchronously, each on its own piece of data",
+            "SPMD (Single Program, Multiple Data): every process runs the same instructions asynchronously, each on "
+            "its own piece of data",
             "Not to be confused with SIMD (Single Instruction, Multiple Data), as in vector computing",
         ],
         size=36,
@@ -107,8 +110,10 @@ SLIDES = [
         kind="bullets",
         title="What is MPI?",
         bullets=[
-            "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's highly portable",
-            "In practice: a library of C functions and Fortran subroutines for exchanging data between processes (C++ uses the C functions)",
+            "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's "
+            "highly portable",
+            "In practice: a library of C functions and Fortran subroutines for exchanging data between processes "
+            "(C++ uses the C functions)",
             "Not limited by the number of cores in one node, unlike shared-memory models",
             "Bindings for Python (mpi4py), Julia (MPI.jl), Rust (rsmpi), R (pbdMPI)…: if it can call C, it can run MPI",
         ],
@@ -161,7 +166,12 @@ SLIDES = [
             "Let make do it for us",
             "The exercise Makefiles also pick flags to suit the compiler that mpicc calls",
         ],
-        code="CC     = mpicc\nCFLAGS = -O2 -g -Wall -Wextra -std=c99\nLDLIBS = -lm\n\n% : %.c\n\t$(CC) $(CFLAGS) $< -o pi $(LDLIBS)",
+        code="CC     = mpicc\n"
+        "CFLAGS = -O2 -g -Wall -Wextra -std=c99\n"
+        "LDLIBS = -lm\n"
+        "\n"
+        "% : %.c\n"
+        "\t$(CC) $(CFLAGS) $< -o pi $(LDLIBS)",
         code_w=900,
     ),
     dict(
@@ -202,7 +212,12 @@ SLIDES = [
         "module purge\n"
         "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
         "srun ./code",
-        code_size=34,
+        code_size=30,
+        bullets=[
+            "16 processes fit on one node: -N 2 is here only to show how to set up a multi-node job",
+            "In practice, use as few nodes as you need: extra nodes add communication cost and queue time",
+        ],
+        size=32,
     ),
     dict(
         kind="code",
@@ -393,7 +408,8 @@ SLIDES = [
         code_w=1100,
         bullets=[
             "nproc: total number of processes in MPI_COMM_WORLD, the same <processes> as in mpiexec -n <processes>",
-            "myrank: this process's rank, a unique number that distinguishes it from every other process in the communicator",
+            "myrank: this process's rank, a unique number that distinguishes it from every other process in the "
+            "communicator",
         ],
     ),
     dict(
@@ -405,7 +421,8 @@ SLIDES = [
         bullets=[
             "Call at the end, after all other MPI calls",
             "Closes all communication channels and cleans up; no MPI calls after this",
-            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument (C returns the error code)",
+            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument (C returns "
+            "the error code)",
         ],
     ),
     dict(
@@ -445,7 +462,8 @@ SLIDES = [
         bullets=[
             "Point-to-point: exactly two processes exchange data. This is the building block for every other MPI call",
             "Collective: one call handles communication among all processes in a communicator",
-            "Three kinds of collectives: data movement (MPI_Bcast), reduction (MPI_Reduce) and synchronization (MPI_Barrier)",
+            "Three kinds of collectives: data movement (MPI_Bcast), reduction (MPI_Reduce) and synchronization "
+            "(MPI_Barrier)",
         ],
         size=36,
     ),
@@ -469,7 +487,8 @@ SLIDES = [
         bullets=[
             "buf: pointer to the data being sent or received",
             "datatype in C: MPI_INT, MPI_LONG, MPI_SHORT, MPI_FLOAT, MPI_DOUBLE, …",
-            "datatype in Fortran: MPI_INTEGER, MPI_REAL, MPI_DOUBLE_PRECISION, MPI_COMPLEX, MPI_CHARACTER, MPI_LOGICAL, …",
+            "datatype in Fortran: MPI_INTEGER, MPI_REAL, MPI_DOUBLE_PRECISION, MPI_COMPLEX, MPI_CHARACTER, "
+            "MPI_LOGICAL, …",
             "comm: usually MPI_COMM_WORLD",
             "Fortran versions take an extra ierr argument; in C it's the return value",
         ],
@@ -505,10 +524,12 @@ SLIDES = [
         kind="bullets",
         title="Reduction",
         bullets=[
-            "Called by every process in the communicator, with matching arguments (the same count, datatype, op and root)",
+            "Called by every process in the communicator, with matching arguments (the same count, datatype, op and "
+            "root)",
             "Operations: MPI_SUM, MPI_MIN, MPI_MAX, MPI_PROD, logical AND, OR, XOR, and more",
             "Define your own with MPI_Op_create()",
-            "Floating-point results can differ slightly between runs or process counts, because the order of additions changes",
+            "Floating-point results can differ slightly between runs or process counts, because the order of "
+            "additions changes",
         ],
     ),
     dict(
@@ -539,7 +560,8 @@ SLIDES = [
         code="int MPI_Bcast(buffer, count, datatype, root, comm)",
         image="mpi-bcast.png",
         caption="MPI_Bcast",
-        after="Called by all processes in the communicator, with matching arguments (the same root, count and datatype)",
+        after="Called by all processes in the communicator, with matching arguments (the same root, count and "
+        "datatype)",
     ),
     dict(
         kind="figure",
@@ -554,7 +576,8 @@ SLIDES = [
         title="Gather",
         bullets=[
             "Called by all processes in the communicator, with matching arguments",
-            "sendcount is the number of elements sent by each process, not the number the root receives (1 in the previous example)",
+            "sendcount is the number of elements sent by each process, not the number the root receives (1 in the "
+            "previous example)",
             "The receive buffer must have room for at least sendcount × nproc elements",
         ],
     ),
@@ -706,7 +729,8 @@ SLIDES = [
         bullets=[
             "Calls return immediately; the transfer may not even have started",
             "Computation can overlap with communication, but only if the MPI library moves data in the background",
-            "But more dangerous: modify a buffer before the transfer completes and the results will (almost) always be garbage",
+            "But more dangerous: modify a buffer before the transfer completes and the results will (almost) always "
+            "be garbage",
         ],
     ),
     dict(
