@@ -8,7 +8,9 @@ ifndef COMPILER
     COMPILER := intel
   else ifneq (,$(findstring clang,$(COMPILER_VERSION))$(findstring flang,$(COMPILER_VERSION)))
     COMPILER := clang
-  else ifneq (,$(findstring GCC,$(COMPILER_VERSION))$(findstring GNU,$(COMPILER_VERSION)))
+  # Every GCC prints a "Free Software Foundation" copyright, but distribution
+  # builds don't always say GCC or GNU, e.g. "gcc (Ubuntu 13.3.0-6ubuntu2) 13.3.0"
+  else ifneq (,$(findstring Free Software Foundation,$(COMPILER_VERSION)))
     COMPILER := gnu
   else
     $(error Could not tell which compiler the MPI wrapper calls; set COMPILER=gnu, intel or clang)

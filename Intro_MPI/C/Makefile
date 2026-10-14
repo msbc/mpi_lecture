@@ -13,6 +13,10 @@ CC     = mpicc
 CXX    = mpicxx
 LDLIBS = -lm
 
+# Skip the old MPI C++ bindings (removed in MPI-3) that some MPI libraries
+# still pull into mpi.h for C++ builds; this code only uses the C API.
+MPI_CXX_DEFS = -DOMPI_SKIP_MPICXX -DMPICH_SKIP_MPICXX
+
 COMPILER_VERSION := $(shell $(CC) --version 2>&1)
 include ../mk/select.mk
 
@@ -23,7 +27,7 @@ usage:
 	$(CC) $(CFLAGS) $< -o $(EXE) $(LDLIBS)
 
 %-cxx : %.c
-	$(CXX) $(CXXFLAGS) -x c++ $< -o $(EXE) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) $(MPI_CXX_DEFS) -x c++ $< -o $(EXE) $(LDLIBS)
 
 # Record how every source is compiled, for clang-tidy and clangd (needs bear)
 SRCS = $(wildcard *.c other_solutions/*.c)

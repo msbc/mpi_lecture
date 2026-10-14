@@ -1,0 +1,71 @@
+# Build every MPI exercise with each compiler family's flags (Intro_MPI/mk),
+# run it on 4 processes, and check it prints the expected value(s) of pi.
+name: Exercises
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    name: ${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    env:
+      # Runners report fewer physical cores than the 4 processes we start
+      OMPI_MCA_rmaps_base_oversubscribe: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # GCC + Open MPI
+          - compiler: gnu
+          # Clang for C/C++ through Open MPI's wrappers. Fortran stays on
+          # gfortran: Ubuntu's Open MPI mpi.mod only works with gfortran.
+          - compiler: clang
+            env: OMPI_CC=clang OMPI_CXX=clang++
+          # Intel oneAPI compilers + Intel MPI, matching the Adroit modules.
+          # I_MPI_* make mpicc/mpicxx/mpif90 call icx/icpx/ifx.
+          - compiler: intel
+            setup: source /opt/intel/oneapi/setvars.sh
+            env: I_MPI_CC=icx I_MPI_CXX=icpx I_MPI_F90=ifx I_MPI_FABRICS=shm
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install GCC and Open MPI
+        if: matrix.compiler != 'intel'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gfortran libopenmpi-dev openmpi-bin
+
+      - name: Install Clang
+        if: matrix.compiler == 'clang'
+        run: sudo apt-get install -y --no-install-recommends clang
+
+      - name: Install Intel oneAPI compilers and Intel MPI
+        if: matrix.compiler == 'intel'
+        run: |
+          wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+            | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            intel-oneapi-compiler-dpcpp-cpp-2024.2 \
+            intel-oneapi-compiler-fortran-2024.2 \
+            intel-oneapi-mpi-devel-2021.13
+
+      - name: Show compilers
+        run: |
+          ${{ matrix.setup || ':' }}
+          if [ -n "${{ matrix.env }}" ]; then export ${{ matrix.env }}; fi
+          for wrapper in mpicc mpicxx mpif90; do
+            echo "$wrapper: $($wrapper --version 2>&1 | sed -n 1p)"
+          done
+
+      - name: Build, run and check every exercise
+        run: |
+          ${{ matrix.setup || ':' }}
+          if [ -n "${{ matrix.env }}" ]; then export ${{ matrix.env }}; fi
+          python3 ci/check_exercises.py
