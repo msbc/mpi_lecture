@@ -8,16 +8,19 @@ Refuses to run if the output file already exists unless --overwrite is given.
 """
 
 import argparse
+import hashlib
 import os
 import re
 import struct
 import subprocess
 import sys
+import tempfile
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(HERE, "figures")
 CARDS = os.path.join(HERE, "figures", "_cards")
+EQS = os.path.join(HERE, "figures", "_eq")
 OUT = os.path.join(HERE, "Intro_MPI.key")
 sys.path.insert(0, HERE)
 from slides import SLIDES  # noqa: E402
@@ -94,6 +97,44 @@ def write_card(w, h, r=22, alpha=0.82, border=(205, 216, 226)):
     with open(path, "wb") as f:
         f.write(data)
     return path
+
+
+# ------------------------------------------------------------ LaTeX equations
+EQ_PREAMBLE = r"""\pdfobjcompresslevel=0
+\documentclass[border=1pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{sansmathfonts}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{xcolor}
+\definecolor{fg}{HTML}{41464D}
+"""
+
+
+def render_eq(tex):
+    """Typeset display math with pdflatex (10pt, sans, theme text color); return (pdf path, w, h in pt).
+    Cached in figures/_eq by a hash of the source."""
+    doc = EQ_PREAMBLE + "\\begin{document}\\color{fg}$\\displaystyle " + tex + "$\\end{document}\n"
+    path = os.path.join(EQS, f"eq_{hashlib.sha1(doc.encode()).hexdigest()[:12]}.pdf")
+    if not os.path.exists(path):
+        os.makedirs(EQS, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(os.path.join(tmp, "eq.tex"), "w", encoding="utf-8") as f:
+                f.write(doc)
+            r = subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-halt-on-error", "eq.tex"],
+                cwd=tmp,
+                capture_output=True,
+                text=True,
+            )
+            if r.returncode:
+                err = [ln for ln in r.stdout.splitlines() if ln.startswith("!")]
+                sys.exit(f"pdflatex failed on equation {tex!r}: {' '.join(err) or r.stdout[-500:]}")
+            os.replace(os.path.join(tmp, "eq.pdf"), path)
+    with open(path, "rb") as f:
+        m = re.search(rb"/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)", f.read())
+    x0, y0, x1, y1 = map(float, m.groups())
+    return path, x1 - x0, y1 - y0
 
 
 # ---------------------------------------------------------- AppleScript emit
@@ -222,6 +263,16 @@ def add_figure(sl, name, x, y, bw, bh, center=True, card=True):
     return cx, y, w + 2 * p, h + 2 * p
 
 
+def add_eq(sl, tex, x, y, bw, size=44, center=True):
+    """LaTeX display equation at (x, y) in a box of width bw, scaled so its text matches a
+    `size`-pt font (shrunk if too wide). Returns its height."""
+    path, pw, ph = render_eq(tex)
+    sc = min(size / 10, bw / pw)
+    w, h = round(pw * sc), round(ph * sc)
+    sl.image(path, x + (bw - w) // 2 if center else x, y, w, h)
+    return h
+
+
 # ------------------------------------------------------------------- layouts
 def build(spec, out):
     k = spec["kind"]
@@ -322,6 +373,8 @@ def build(spec, out):
                 y += chh + 20
             elif blk[0] == "code":
                 y += add_code(sl, blk[1], X0, y, CW, size=32) + 30
+            elif blk[0] == "eq":  # ("eq", r"latex", [font size])
+                y += add_eq(sl, blk[1], X0, y, CW, *blk[2:]) + 40
             elif blk[0] == "imgtext":  # image left, text right
                 _, img, ih, txt = blk
                 cx, cy, cw_, chh = add_figure(sl, img, X0, y, 600, ih, center=False)

@@ -2,6 +2,7 @@
 Intro_MPI.key
 Intro_MPI.backup-*.key
 figures/_cards/
+figures/_eq/
 
 # Source PDF (archival, not tracked for now)
 MPILecture_fall_2025_v1.pdf

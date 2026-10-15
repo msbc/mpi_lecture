@@ -204,7 +204,7 @@ SLIDES = [
         sub="A job script: 16 processes for up to 4 hours, with email at start and end",
         code="#!/bin/bash\n"
         "#SBATCH -N 2\n"
-        "#SBATCH --ntasks-per-node=8\n"
+        "#SBATCH --ntasks=16\n"
         "#SBATCH -t 4:00:00\n"
         "#SBATCH --mail-type=begin,end\n"
         "#SBATCH --mail-user=<netID>@princeton.edu\n"
@@ -235,9 +235,9 @@ SLIDES = [
         title="Approximating π",
         blocks=[
             ("text", "Our first hands-on example: approximate π by numerical integration, using"),
-            ("img", "eq-antiderivative.png", 190),
+            ("eq", r"\int \frac{dx}{1+x^2} = \arctan(x) + C,"),
             ("text", "and therefore, since arctan(1) = π/4:"),
-            ("img", "eq-pi.png", 210),
+            ("eq", r"4\int_0^1 \frac{dx}{1+x^2} = \pi."),
         ],
     ),
     dict(
@@ -245,7 +245,12 @@ SLIDES = [
         title="Approximating π",
         sub="The midpoint-rule Riemann sum",
         blocks=[
-            ("img", "eq-midpoint.png", 150),
+            (
+                "eq",
+                r"\int_0^1 f(x)\,dx \approx \Delta x \left[ f\left(\frac{\Delta x}{2}\right)"
+                r" + f\left(\frac{3\Delta x}{2}\right) + \cdots + f\left(1 - \frac{\Delta x}{2}\right) \right].",
+                40,
+            ),
             (
                 "imgtext",
                 "riemann-sum.png",
