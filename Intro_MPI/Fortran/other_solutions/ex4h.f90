@@ -1,17 +1,17 @@
 program main
-  use mpi, only: MPI_ANY_SOURCE, MPI_COMM_RANK, MPI_COMM_SIZE, MPI_COMM_WORLD, &
-                 MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_INTEGER, MPI_ISEND, &
-                 MPI_RECV, MPI_STATUSES_IGNORE, MPI_STATUS_IGNORE, MPI_STATUS_SIZE, &
-                 MPI_WAIT, MPI_WAITALL, MPI_WTIME
+  use mpi_f08, only: MPI_ANY_SOURCE, MPI_COMM_RANK, MPI_COMM_SIZE, MPI_COMM_WORLD, &
+                     MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_INTEGER, &
+                     MPI_ISEND, MPI_RECV, MPI_Request, MPI_STATUSES_IGNORE, &
+                     MPI_STATUS_IGNORE, MPI_Status, MPI_WAIT, MPI_WAITALL, MPI_WTIME
   implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x, pi_frac
   real(dp) :: tt0, ttf
   integer :: n, myid, numprocs, i, ierr, j, tag
-  integer :: stat(MPI_STATUS_SIZE)
-  integer :: request
-  integer, allocatable :: requests(:)
+  type(MPI_Status) :: stat
+  type(MPI_Request) :: request
+  type(MPI_Request), allocatable :: requests(:)
 
   n = 1
   tag = 1

@@ -401,6 +401,7 @@ SLIDES = [
         code_w=1100,
         bullets=[
             "mpi.h defines all MPI parameters and functions, so include it in every source file that calls MPI",
+            "Fortran: use mpi_f08, the modern module that checks the arguments of every MPI call",
             "MPI_Init must come before any other MPI call",
             "It sets up communication channels between all processes and assigns each one a rank",
         ],
@@ -426,8 +427,8 @@ SLIDES = [
         bullets=[
             "Call at the end, after all other MPI calls",
             "Closes all communication channels and cleans up; no MPI calls after this",
-            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument (C returns "
-            "the error code)",
+            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument, optional "
+            "with mpi_f08 (C returns the error code)",
         ],
     ),
     dict(

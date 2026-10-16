@@ -1,16 +1,16 @@
 program main
   ! Same as ex4g, but calls the PMPI_ profiling entry points directly.
   ! The constants (MPI_COMM_WORLD, MPI_INTEGER, ...) have no PMPI_ versions.
-  use mpi, only: MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_INTEGER, &
-                 MPI_STATUS_SIZE, PMPI_COMM_RANK, PMPI_COMM_SIZE, PMPI_FINALIZE, &
-                 PMPI_INIT, PMPI_RECV, PMPI_SEND, PMPI_WTIME
+  use mpi_f08, only: MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_INTEGER, &
+                     MPI_Status, PMPI_COMM_RANK, PMPI_COMM_SIZE, PMPI_FINALIZE, &
+                     PMPI_INIT, PMPI_RECV, PMPI_SEND, PMPI_WTIME
   implicit none
   integer, parameter :: dp = kind(1.0d0)
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
   real(dp) :: mypi, pi, h, sum, x, pi_frac
   real(dp) :: tt0, ttf
   integer :: n, myid, numprocs, i, ierr, j, tag
-  integer :: stat(MPI_STATUS_SIZE)
+  type(MPI_Status) :: stat
 
   n = 1
   tag = 1
