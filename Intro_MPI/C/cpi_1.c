@@ -40,7 +40,7 @@ int main() {
   }
 
   double pi = dx * sum;
-  printf("Pi is approximately %.16f, with error %.16f\n", pi,
+  printf("Pi is approximately %.16f, with error %g\n", pi,
          fabs(pi - 3.141592653589793238462643));
 
   return 0;
