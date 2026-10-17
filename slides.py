@@ -775,8 +775,22 @@ SLIDES = [
         bullets=[
             "Alternatively, block until the operation completes with MPI_Wait, or MPI_Waitall for several at once",
             "status says which source and tag a message came from; pass MPI_STATUS_IGNORE if you don't need it",
-            "The caveat: MPI-3 also adds non-blocking collectives (e.g. MPI_Ibcast)",
         ],
+    ),
+    dict(
+        kind="code",
+        title="Non-blocking collectives",
+        sub="The caveat: collectives can be non-blocking too",
+        code="int MPI_Ibcast(buffer, count, datatype, root, comm, request)\n"
+        "\n"
+        "int MPI_Ireduce(sendbuf, recvbuf, count, datatype, op, root, comm, request)",
+        code_size=30,
+        bullets=[
+            "The same arguments as MPI_Bcast and MPI_Reduce, plus a request",
+            "Every process in the communicator still has to make the call",
+            "Don't touch the buffers until MPI_Wait or MPI_Test says the operation has completed",
+        ],
+        size=34,
     ),
     dict(
         kind="bullets",
