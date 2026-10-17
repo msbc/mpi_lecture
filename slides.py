@@ -116,11 +116,11 @@ SLIDES = [
         kind="bullets",
         title="What is MPI?",
         bullets=[
+            "Works across nodes: one job can span many machines, with far more cores and memory than one node",
             "Message Passing Interface: a standard implemented on essentially every parallel architecture, so it's "
             "highly portable",
             "In practice: a library of C functions and Fortran subroutines for exchanging data between processes "
             "(C++ uses the C functions)",
-            "Not limited by the number of cores in one node, unlike shared-memory models",
             "Bindings for Python (mpi4py), Julia (MPI.jl), Rust (rsmpi), R (pbdMPI)…: if it can call C, it can run MPI",
         ],
         size=36,
