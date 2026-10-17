@@ -21,7 +21,7 @@ The repository has two parts: a Keynote deck generated from a Python slide spec,
 Edit `slides.py`, then build the deck:
 
 ```
-python3 build_keynote.py --output /tmp/Intro_MPI.key
+uv run build_keynote.py --output /tmp/Intro_MPI.key
 ```
 
 - The script drives Keynote through AppleScript, so it needs macOS with Keynote installed.
