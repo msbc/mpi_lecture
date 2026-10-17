@@ -753,15 +753,18 @@ SLIDES = [
     dict(
         kind="code",
         title="Non-blocking send and receive",
-        code="int MPI_Isend(buf, count, datatype, dest, tag, comm, request)\n"
-        "int MPI_Irecv(buf, count, datatype, source, tag, comm, request)\n"
+        code="int MPI_Irecv(buf, count, datatype, source, tag, comm, request)\n"
+        "int MPI_Isend(buf, count, datatype, dest, tag, comm, request)\n"
         "\n"
         "int MPI_Test(request, flag, status)",
         code_size=32,
         bullets=[
             "request identifies the send or receive operation",
             "MPI_Test sets flag to true if the operation has completed, false otherwise",
+            "Post the receive before the send: the matching buffer is ready when the message arrives, which avoids "
+            "an extra copy",
         ],
+        size=34,
     ),
     dict(
         kind="code",
