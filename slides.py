@@ -195,16 +195,18 @@ SLIDES = [
         size=34,
     ),
     dict(
-        kind="bullets",
+        kind="figbullets",
         title="How MPI works",
+        image="mpi-nodes.png",
+        fig_w=860,
         bullets=[
-            "An identical copy of the program starts on each core, in its own OS process with a private address space",
+            "An identical copy of the program runs on each core, in its own process",
             "Each process works on a subset of the problem, exchanging data as needed",
-            "Data moves over the network interconnect (distributed memory) or through shared memory (e.g. SMP nodes)",
+            "Messages go over the network between nodes, or through shared memory within a node",
             "Suits coarse-grained parallelism: it scales well, but balancing the load is up to you",
             "Most codes today are hybrid, MPI + X: MPI between nodes, plus OpenMP threads or GPUs within each node",
         ],
-        size=34,
+        size=30,
     ),
     dict(
         kind="code",
