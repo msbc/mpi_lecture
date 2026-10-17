@@ -47,9 +47,10 @@ SLIDES = [
             (
                 "Partitioned global address space",
                 [
-                    "SPMD with globally addressable memory (PGAS)",
                     "Coarray Fortran (Fortran 2008)",
-                    "OpenSHMEM, UPC++, Chapel",
+                    "OpenSHMEM: C/Fortran, one-sided put/get",
+                    "UPC++: C++ library, async remote calls",
+                    "Chapel: a parallel language",
                 ],
             ),
             (
