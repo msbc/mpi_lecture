@@ -142,6 +142,7 @@ SLIDES = [
         kind="code",
         title="Compiling and linking",
         sub="Step 1: load a compiler and an MPI library on Adroit",
+        lang="bash",
         code="# Intel compilers + Intel MPI\n"
         "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
         "\n"
@@ -157,6 +158,7 @@ SLIDES = [
         kind="code",
         title="Compiling and linking",
         sub="Step 2: use the MPI compiler wrappers",
+        lang="bash",
         code="mpicc  mpi_code.c   -o code    # C\n"
         "mpicxx mpi_code.cpp -o code    # C++\n"
         "mpif90 mpi_code.f90 -o code    # Fortran\n"
@@ -167,6 +169,7 @@ SLIDES = [
     dict(
         kind="split",
         title="Writing a Makefile",
+        lang="make",
         bullets=[
             "We're lazy: we'd rather not compile and link by hand",
             "Let make do it for us",
@@ -183,6 +186,7 @@ SLIDES = [
     dict(
         kind="code",
         title="Running an MPI executable",
+        lang="bash",
         sub="Every MPI implementation provides a launcher",
         code="# MPICH or OpenMPI\n"
         "mpirun -np <processes> ./code\n"
@@ -212,6 +216,7 @@ SLIDES = [
         kind="code",
         title="The Slurm workload manager",
         sub="A job script: 16 processes for up to 4 hours, with email at start and end",
+        lang="bash",
         code="#!/bin/bash\n"
         "#SBATCH --nodes 2\n"
         "#SBATCH --ntasks 16\n"
@@ -234,6 +239,7 @@ SLIDES = [
         kind="code",
         title="The Slurm workload manager",
         sub="Submitting and managing jobs",
+        lang="bash",
         code="sbatch <script>     # submit a job\n"
         "squeue --me         # check the status of your jobs\n"
         "scancel <jobID>     # cancel a job",
@@ -308,6 +314,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Serial π in Fortran",
+        lang="fortran",
         sub="fpi_1.f90",
         left="program piapprox\n"
         "  implicit none\n"
@@ -339,6 +346,7 @@ SLIDES = [
         kind="code",
         title="Hands-on exercise #1",
         sub="Setting up",
+        lang="bash",
         code="# 1. Log in to Adroit\n"
         "ssh <netID>@adroit.princeton.edu\n"
         "\n"
@@ -356,6 +364,7 @@ SLIDES = [
         kind="split",
         title="Hands-on exercise #1",
         sub="Build and run",
+        lang="bash",
         bullets=[
             "Skim the Makefile and slurm_script (both deliberately simple)",
             "Look at cpi_1.c or fpi_1.f90: the code from the previous slides",

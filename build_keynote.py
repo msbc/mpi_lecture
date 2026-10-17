@@ -223,9 +223,48 @@ def code_height(code, size):
     return int(LINE * size * len(code.split("\n")) + 8 + 2 * PAD)
 
 
-def highlight(code):
-    """(start, end, color) 1-based inclusive character ranges for MPI names and comments."""
+KEYWORD = rgb("#9B3D8F")
+# pygments token type -> color; anything not listed stays the default code color
+TOKEN_COLORS = [
+    (("Comment",), COMMENT),
+    (("Keyword",), KEYWORD),
+    (("Keyword.Type", "Name.Builtin.Type"), rgb("#2E7D6B")),
+    (("Literal.String", "Literal.Number"), rgb("#B35C1E")),
+]
+
+
+def token_color(ttype):
+    """Color for the most specific matching entry of TOKEN_COLORS (None: default)."""
+    best, color = -1, None
+    for names, col in TOKEN_COLORS:
+        for name in names:
+            if str(ttype).removeprefix("Token.").startswith(name) and len(name) > best:
+                best, color = len(name), col
+    return color
+
+
+def highlight(code, lang="c"):
+    """(start, end, color) 1-based inclusive character ranges: pygments syntax colors for `lang`
+    (None to skip), then MPI names and comments on top."""
     spans, pos = [], 0
+    if lang:
+        try:
+            from pygments.lexers import get_lexer_by_name
+        except ImportError:
+            sys.exit("Syntax highlighting needs pygments: pip install pygments")
+        for ttype, text in get_lexer_by_name(lang, ensurenl=False, stripnl=False).get_tokens(code):
+            col = token_color(ttype)
+            if col == COMMENT and text.startswith("#SBATCH"):  # a directive, not a comment
+                spans.append((pos + 1, pos + 7, KEYWORD))
+                pos, text = pos + 7, text[7:]
+                col = None
+            if col and text.strip():
+                if spans and spans[-1][1] == pos and spans[-1][2] == col:  # merge neighbours
+                    spans[-1] = (spans[-1][0], pos + len(text), col)
+                else:
+                    spans.append((pos + 1, pos + len(text), col))
+            pos += len(text)
+    pos = 0
     for line in code.split("\n"):
         for m in re.finditer(r"\bMPI_[A-Za-z_]+", line):
             spans.append((pos + m.start() + 1, pos + m.end(), ACCENT))
@@ -237,14 +276,14 @@ def highlight(code):
     return spans
 
 
-def add_code(sl, code, x, y, w, hmax=None, size=None):
+def add_code(sl, code, x, y, w, hmax=None, size=None, lang="c"):
     """Code on a rounded card at (x, y), width w. Returns card height."""
     hmax = hmax or (YMAX - y)
     size = size or code_size(code, w, hmax)
     ch = code_height(code, size)
     sl.image(write_card(w, ch), x, y, w, ch)
     sl.text(code.replace("\n", " "), x + PAD, y + PAD, w - 2 * PAD, size=size, font=MONO, color=CODE)
-    for a, b, col in highlight(code):
+    for a, b, col in highlight(code, lang):
         sl.cmd(f"set color of characters {a} thru {b} of object text of ti to {{{col[0]}, {col[1]}, {col[2]}}}")
     return ch
 
@@ -276,6 +315,7 @@ def add_eq(sl, tex, x, y, bw, size=44, center=True):
 # ------------------------------------------------------------------- layouts
 def build(spec, out):
     k = spec["kind"]
+    lang = spec.get("lang", "c")  # syntax highlighting for code blocks
     if k == "title":
         sl = Slide(out, "Title")
         sl.cmd(f"set object text of default title item of s to {q(spec['title'])}")
@@ -299,12 +339,14 @@ def build(spec, out):
         sl.title(spec["title"], spec.get("sub"))
         cw = spec.get("code_w", 900)
         sl.body(spec["bullets"], w=CW - cw - 60, size=spec.get("size", 36))
-        add_code(sl, spec["code"], X0 + CW - cw, Y0 + 20, cw, size=spec.get("code_size"))
+        add_code(sl, spec["code"], X0 + CW - cw, Y0 + 20, cw, size=spec.get("code_size"), lang=lang)
     elif k == "code":  # code card on top, optional bullets below
         sl = Slide(out, "Title & Bullets" if spec.get("bullets") else "Title Only")
         sl.title(spec["title"], spec.get("sub"))
         hmax = spec.get("code_h", YMAX - Y0)
-        ch = add_code(sl, spec["code"], X0, Y0, spec.get("code_w", CW), hmax=hmax, size=spec.get("code_size"))
+        ch = add_code(
+            sl, spec["code"], X0, Y0, spec.get("code_w", CW), hmax=hmax, size=spec.get("code_size"), lang=lang
+        )
         if spec.get("bullets"):
             sl.body(spec["bullets"], y=Y0 + ch + 40, size=spec.get("size", 36))
     elif k == "twocode":
@@ -312,14 +354,14 @@ def build(spec, out):
         sl.title(spec["title"], spec.get("sub"))
         cw = (CW - 40) // 2
         sz = min(code_size(spec["left"], cw, YMAX - Y0), code_size(spec["right"], cw, YMAX - Y0))
-        add_code(sl, spec["left"], X0, Y0, cw, size=sz)
-        add_code(sl, spec["right"], X0 + cw + 40, Y0, cw, size=sz)
+        add_code(sl, spec["left"], X0, Y0, cw, size=sz, lang=lang)
+        add_code(sl, spec["right"], X0 + cw + 40, Y0, cw, size=sz, lang=lang)
     elif k == "figure":  # optional code, figure, caption, optional trailing text
         sl = Slide(out, "Title Only")
         sl.title(spec["title"], spec.get("sub"))
         y = Y0
         if spec.get("code"):
-            y += add_code(sl, spec["code"], X0, y, CW, size=spec.get("code_size", 32)) + 30
+            y += add_code(sl, spec["code"], X0, y, CW, size=spec.get("code_size", 32), lang=lang) + 30
         bottom = YMAX - (50 if spec.get("caption") else 0) - (70 if spec.get("after") else 0)
         cx, cy, cw_, chh = add_figure(sl, spec["image"], X0, y, CW, min(bottom - y, spec.get("max_h", 2000)))
         y = cy + chh + 12
@@ -372,7 +414,7 @@ def build(spec, out):
                 cx, cy, cw_, chh = add_figure(sl, blk[1], X0, y, CW, blk[2], card=False)
                 y += chh + 20
             elif blk[0] == "code":
-                y += add_code(sl, blk[1], X0, y, CW, size=32) + 30
+                y += add_code(sl, blk[1], X0, y, CW, size=32, lang=lang) + 30
             elif blk[0] == "eq":  # ("eq", r"latex", [font size])
                 y += add_eq(sl, blk[1], X0, y, CW, *blk[2:]) + 40
             elif blk[0] == "imgtext":  # image left, text right

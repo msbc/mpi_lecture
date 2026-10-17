@@ -25,6 +25,8 @@ uv run build_keynote.py --output /tmp/Intro_MPI.key
 ```
 
 - The script drives Keynote through AppleScript, so it needs macOS with Keynote installed.
+- Code blocks are syntax-highlighted with [Pygments](https://pygments.org) (installed by `uv run` from `pyproject.toml`).
+  Set `lang="bash"`, `"make"` or `"fortran"` on a slide in `slides.py`; the default is C.
 - It uses the "Dynamic Waves Light" theme at 16:9.
 - It refuses to overwrite an existing file unless you pass `--overwrite`.
   Without `--output` it writes `Intro_MPI.key` in this directory.
