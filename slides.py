@@ -467,8 +467,8 @@ SLIDES = [
     dict(
         kind="figure",
         title="What's the problem?",
-        image="cool-hand-luke.png",
-        caption="The Captain's speech, from Cool Hand Luke (1967)",
+        image="surprised-pikachu.png",
+        caption="Each process computed only its own slice",
     ),
     # --------------------------------------------------------- communication
     dict(kind="section", title="Communication"),
