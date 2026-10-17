@@ -189,8 +189,10 @@ SLIDES = [
         "mpiexec -n <processes> ./code\n"
         "\n"
         "# Slurm workload manager (e.g. Princeton clusters)\n"
-        "srun -n <processes> ./code",
+        "srun ./code",
         code_size=38,
+        bullets=["Inside a Slurm job, srun needs no flags: it starts one process per task you requested"],
+        size=34,
     ),
     dict(
         kind="bullets",
