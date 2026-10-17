@@ -98,7 +98,12 @@ SLIDES = [
         title="Splitting the work",
         sub="Matrix decomposition: linear PDE solvers",
         image="matrix-decomposition.png",
-        caption="Matrix decomposition in PETSc (Portable, Extensible Toolkit for Scientific Computation)",
+        caption="Row-block decomposition of A x = b, as in PETSc: each rank owns a block of rows",
+        notes="A discretized PDE becomes a sparse linear system A x = b. Give each rank a contiguous block of rows "
+        "of A and the matching pieces of x and b. The dark entries only touch x values the rank owns, so they need "
+        "no communication. The pale entries sit in a neighbor's columns: before each matrix-vector product, the "
+        "ranks swap those x values (a halo exchange). PETSc (Portable, Extensible Toolkit for Scientific "
+        "Computation) distributes its matrices and vectors this way.",
     ),
     dict(
         kind="figure",
