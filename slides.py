@@ -213,19 +213,20 @@ SLIDES = [
         title="The Slurm workload manager",
         sub="A job script: 16 processes for up to 4 hours, with email at start and end",
         code="#!/bin/bash\n"
-        "#SBATCH -N 2\n"
-        "#SBATCH --ntasks=16\n"
-        "#SBATCH -t 4:00:00\n"
-        "#SBATCH --mail-type=begin,end\n"
-        "#SBATCH --mail-user=<netID>@princeton.edu\n"
+        "#SBATCH --nodes 2\n"
+        "#SBATCH --ntasks 16\n"
+        "#SBATCH --time 4:00:00\n"
+        "#SBATCH --mail-type begin,end\n"
+        "#SBATCH --mail-user <netID>@princeton.edu\n"
         "\n"
         "module purge\n"
         "module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13\n"
         "srun ./code",
         code_size=30,
         bullets=[
-            "16 processes fit on one node: -N 2 is here only to show how to set up a multi-node job",
+            "16 processes fit on one node: --nodes 2 is here only to show how to set up a multi-node job",
             "In practice, use as few nodes as you need: extra nodes add communication cost and queue time",
+            "Slurm accepts both --ntasks 16 and --ntasks=16; we use the space form throughout",
         ],
         size=32,
     ),
