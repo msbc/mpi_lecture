@@ -19,5 +19,7 @@ compile_commands.json
 *.o
 a.out
 
+# Temporary files
 .DS_Store
 __pycache__/
+.cache/
