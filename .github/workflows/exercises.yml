@@ -33,6 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check the shared code is copied into every exercise
+        run: python3 ci/sync_shared.py --check
+
       - name: Install GCC and Open MPI
         if: matrix.compiler != 'intel'
         run: |

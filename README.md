@@ -14,6 +14,7 @@ The repository has two parts: a Keynote deck generated from a Python slide spec,
 | `figures/` | Images used by the slides |
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
 | `ci/check_exercises.py` | Builds and runs every exercise and checks the printed value of π |
+| `ci/sync_shared.py` | Copies the code in `Intro_MPI/shared/` into every exercise |
 | `.github/workflows/exercises.yml` | Runs that check on GitHub Actions with GCC, Clang and Intel compilers |
 
 ## Building the slides
@@ -61,3 +62,15 @@ pre-commit run --all-files
 | Fortran | fortitude | `fortitude.toml` |
 
 The clang-tidy hooks use `bear` to generate `Intro_MPI/C/compile_commands.json`.
+
+### Shared code in the exercises
+
+Every exercise is a self-contained file, but some code (reading the number of slices from the command line) is the same in all of them.
+That code lives once in `Intro_MPI/shared/`, as `parse_nslices.c` and `parse_nslices.f90`, and is copied between `BEGIN shared` and `END shared` comments in each program.
+Edit the file in `Intro_MPI/shared/`, never a copy, then run:
+
+```
+python3 ci/sync_shared.py
+```
+
+A pre-commit hook and the GitHub workflow run `python3 ci/sync_shared.py --check`, which fails if any copy is out of date.

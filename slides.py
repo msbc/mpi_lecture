@@ -283,12 +283,11 @@ SLIDES = [
         kind="twocode",
         title="Serial π in C",
         sub="cpi_1.c",
-        left="int main() {\n"
-        '  int nslices = read_nslices("nslices.dat");\n'
+        left="int main(int argc, char* argv[]) {\n"
+        "  int nslices = parse_nslices(argc, argv);\n"
         "  if (nslices <= 0) {\n"
-        '    fprintf(stderr, "Could not read a positive "\n'
-        '                    "number from nslices.dat\\n");\n'
-        "    return 1;\n"
+        "    print_usage(nslices, argv[0]);\n"
+        "    return nslices == 0 ? 0 : 1;\n"
         "  }\n"
         '  printf("Number of intervals = %d.\\n",\n'
         "         nslices);\n"
@@ -308,7 +307,9 @@ SLIDES = [
         "\n"
         "  return 0;\n"
         "}",
-        notes="read_nslices(), at the top of cpi_1.c, reads nslices.dat and returns -1 if it can't. "
+        notes="parse_nslices(), at the top of cpi_1.c, reads the number of slices from the command line "
+        "(./pi 1000000), or uses 10,000,000 if there is none. It returns 0 for -h or --help and -1 for "
+        "anything that isn't a positive whole number; print_usage() then prints the help or the error. "
         "Long strings are split across lines for display.",
     ),
     dict(
@@ -324,10 +325,12 @@ SLIDES = [
         "  real(dp) :: dx, sum, x, pi\n"
         "  integer :: nslices, i\n"
         "\n"
-        '  open(unit=12, file="nslices.dat", &\n'
-        '       status="old", action="read")\n'
-        "  read(12, *) nslices\n"
-        "  close(12)\n"
+        "  nslices = parse_nslices()\n"
+        "  if (nslices <= 0) then\n"
+        "    call print_usage(nslices)\n"
+        "    if (nslices < 0) stop 1\n"
+        "    stop\n"
+        "  end if\n"
         '  write(*, *) "  Number of intervals = ", nslices',
         right="  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
@@ -340,7 +343,8 @@ SLIDES = [
         '  write(*, *) " Pi=", pi, ", Error=", &\n'
         "              abs(pi - PI25DT)\n"
         "end program piapprox",
-        notes="Long lines are continued with & for display; otherwise this is fpi_1.f90 exactly.",
+        notes="parse_nslices() and print_usage() come after the contains line at the end of fpi_1.f90. "
+        "Long lines are continued with & for display; otherwise this is fpi_1.f90 exactly.",
     ),
     dict(
         kind="code",
@@ -690,10 +694,11 @@ SLIDES = [
         title="Hands-on exercise #5",
         sub="Reading input on one process",
         bullets=[
-            "Suppose nslices.dat is huge and we're running thousands of processes",
-            "File-system access is the slowest kind of I/O, so we don't want every process reading at once",
-            "Make only the root process (rank 0) read the file…",
-            "…then use MPI to share its contents with every process in MPI_COMM_WORLD",
+            "So far every process reads nslices from the command line itself",
+            "The MPI standard doesn't promise that every process gets the command-line arguments",
+            "(Input files are similar: thousands of processes reading one file at once is slow)",
+            "Make only the root process (rank 0) read the input…",
+            "…then use MPI to share it with every process in MPI_COMM_WORLD",
             "Stuck? See cpi_5.c and fpi_5.f90",
         ],
         size=34,
@@ -701,19 +706,22 @@ SLIDES = [
     dict(
         kind="code",
         title="One possible solution",
-        sub="The root reads the file, then broadcasts nslices",
+        sub="The root reads the command line, then broadcasts nslices",
         code="if (myrank == 0) {\n"
-        '  nslices = read_nslices("nslices.dat");\n'
+        "  nslices = parse_nslices(argc, argv);\n"
         "  if (nslices <= 0) {\n"
-        '    fprintf(stderr, "Could not read a positive number "\n'
-        '                    "from nslices.dat\\n");\n'
-        "    MPI_Abort(MPI_COMM_WORLD, 1);\n"
+        "    print_usage(nslices, argv[0]);\n"
+        "    if (nslices < 0) {\n"
+        "      MPI_Abort(MPI_COMM_WORLD, 1);\n"
+        "    }\n"
         "  }\n"
         "}\n"
         "\n"
         "MPI_Bcast(&nslices, 1, MPI_INT, 0, MPI_COMM_WORLD);",
         code_size=32,
         bullets=["MPI_Abort stops every process, not just the one that hit the error"],
+        notes="After the broadcast, nslices is 0 on every process if rank 0 was given -h, "
+        "so they all call MPI_Finalize and stop.",
     ),
     dict(
         kind="code",

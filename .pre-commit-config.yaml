@@ -22,6 +22,7 @@ repos:
     hooks:
       - id: fortitude
         args: [--fix]
+        exclude: ^Intro_MPI/shared/  # fragments, checked where they are copied
 
   # C: lint as both C and C++ (settings in .clang-tidy). The compile flags
   # come from Intro_MPI/C/compile_commands.json, which make regenerates with
@@ -32,13 +33,25 @@ repos:
         name: clang-tidy (as C)
         language: system
         types: [c]
+        exclude: ^Intro_MPI/shared/
         require_serial: true
         entry: bash -c 'make -s -C Intro_MPI/C compile_commands.json && clang-tidy --quiet "$@"' --
       - id: clang-tidy-cxx
         name: clang-tidy (as C++)
         language: system
         types: [c]
+        exclude: ^Intro_MPI/shared/
         require_serial: true
         entry: >-
           bash -c 'make -s -C Intro_MPI/C compile_commands.json &&
           clang-tidy --quiet --extra-arg-before=-xc++ --extra-arg=-std=c++17 "$@"' --
+
+  # Exercises: the code in Intro_MPI/shared must match every copy of it
+  - repo: local
+    hooks:
+      - id: sync-shared
+        name: shared code is copied into every exercise
+        language: system
+        files: ^Intro_MPI/.*\.(c|f90)$
+        pass_filenames: false
+        entry: python3 ci/sync_shared.py --check

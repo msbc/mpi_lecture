@@ -13,8 +13,8 @@ Every exercise comes in C (`C/`) and Fortran (`Fortran/`); work in whichever you
 | `other_solutions/` | Alternative solutions to the final exercise |
 | `Makefile` | Builds any example; see below |
 | `slurm_script` | Runs the program you built on 4 MPI processes |
-| `nslices.dat` | Input file: the number of slices to integrate over |
 | `../mk/` | Compiler flags, shared by both languages (leave alone) |
+| `../shared/` | Code copied into every program by `ci/sync_shared.py` (leave alone) |
 
 ## Build and run
 
@@ -34,6 +34,9 @@ cat output.log        # see the result
 
 - Every build writes the same executable name, `pi`, so building a new example replaces the old one.
   Use `make cpi_2 EXE=mine` to pick another name (then change `./pi` in `slurm_script` to match).
+- The program integrates over 10,000,000 slices unless you give another number:
+  change the last line of `slurm_script` to `srun ./pi 100000000`, for example.
+  `./pi -h` prints the usage.
 - `make clean` removes the executable.
 - In `C/`, `make cpi_2-cxx` builds the same source as C++.
 - `slurm_script` has a one-minute time limit and sends its output (and any errors) to `output.log`.
