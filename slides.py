@@ -688,6 +688,11 @@ SLIDES = [
             "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f90 and fpi_4b.f90, in solutions/",
         ],
         size=36,
+        notes="The two solutions differ in one call. cpi_4a uses MPI_Reduce: only the root (rank 0) gets the "
+        "sum, so the other ranks print the 0 they started with; that is expected, not a bug. cpi_4b uses "
+        "MPI_Allreduce: every rank gets the sum, at the cost of extra communication. Use MPI_Reduce when only "
+        "one process needs the result (e.g. to print it) and MPI_Allreduce when every process needs it to "
+        "carry on computing.",
     ),
     dict(
         kind="bullets",
