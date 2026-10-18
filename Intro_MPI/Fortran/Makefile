@@ -14,6 +14,9 @@ include ../mk/select.mk
 usage:
 	@echo "Usage: make <example>, e.g. make fpi_5"
 
+# The answers (fpi_2 ... fpi_5) are in solutions/; make finds them there
+vpath %.f90 solutions
+
 % : %.f90
 	$(FC) $(FFLAGS) $< -o $(EXE)
 

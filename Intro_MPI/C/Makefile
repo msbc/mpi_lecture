@@ -23,6 +23,9 @@ include ../mk/select.mk
 usage:
 	@echo "Usage: make <example>, e.g. make cpi_5 (or make cpi_5-cxx to build as C++)"
 
+# The answers (cpi_2 ... cpi_5) are in solutions/; make finds them there
+vpath %.c solutions
+
 % : %.c
 	$(CC) $(CFLAGS) $< -o $(EXE) $(LDLIBS)
 
@@ -30,7 +33,7 @@ usage:
 	$(CXX) $(CXXFLAGS) $(MPI_CXX_DEFS) -x c++ $< -o $(EXE) $(LDLIBS)
 
 # Record how every source is compiled, for clang-tidy and clangd (needs bear)
-SRCS = $(wildcard *.c other_solutions/*.c)
+SRCS = $(wildcard *.c solutions/*.c)
 
 # For repo maintenance only, not needed for users.
 # Use bear to generate a compile_commands.json file for clang-tidy and clangd.

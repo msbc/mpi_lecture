@@ -20,21 +20,14 @@ TOLERANCE = 1e-8
 # A printed value of pi, e.g. "Pi is approximately 3.14...", " Pi=   3.14...",
 # "pi is    3.14..."
 PI_VALUE = re.compile(r"\bpi(?: is(?: approximately)?)?\s*=?\s*([-+0-9.]+(?:[eE][-+]?\d+)?)", re.I)
-JACOBI_DIFF = re.compile(r"diff is ([-+0-9.eE]+)")
 
 # Programs whose ranks each print only their share of the integral, so the
 # printed values add up to pi instead of one of them being pi.
-PARTIAL_SUMS = {"cpi_3", "fpi_3", "ex4e"}
+PARTIAL_SUMS = {"cpi_3", "fpi_3"}
 
 
 def check_output(name, output, nproc):
     """Return an error message if the output is not what NAME should print."""
-    if name == "jacobi_MPI":
-        diffs = [float(d) for d in JACOBI_DIFF.findall(output)]
-        if not diffs or diffs[-1] > 1e-2:
-            return f"Jacobi did not converge (last diff: {diffs[-1] if diffs else 'none'})"
-        return None
-
     values = [float(v) for v in PI_VALUE.findall(output)]
     if not values:
         return "no value of pi in the output"
@@ -54,18 +47,19 @@ def run(cmd, cwd, timeout):
 
 
 def exercises(languages):
-    """Yield (directory, make target, program name) for every exercise."""
+    """Yield (directory, make target, program name) for every exercise.
+
+    The target is the bare name (cpi_2, not solutions/cpi_2), as students type it.
+    """
     if "c" in languages or "cxx" in languages:
-        for src in sorted((ROOT / "C").rglob("*.c")):
-            name = str(src.relative_to(ROOT / "C").with_suffix(""))
+        for src in sorted((ROOT / "C").rglob("*.c"), key=lambda p: p.stem):
             if "c" in languages:
-                yield ROOT / "C", name, src.stem
+                yield ROOT / "C", src.stem, src.stem
             if "cxx" in languages:
-                yield ROOT / "C", f"{name}-cxx", src.stem
+                yield ROOT / "C", f"{src.stem}-cxx", src.stem
     if "fortran" in languages:
-        for src in sorted((ROOT / "Fortran").rglob("*.f90")):
-            name = str(src.relative_to(ROOT / "Fortran").with_suffix(""))
-            yield ROOT / "Fortran", name, src.stem
+        for src in sorted((ROOT / "Fortran").rglob("*.f90"), key=lambda p: p.stem):
+            yield ROOT / "Fortran", src.stem, src.stem
 
 
 def main():

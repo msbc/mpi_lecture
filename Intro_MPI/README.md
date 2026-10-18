@@ -8,9 +8,7 @@ Every exercise comes in C (`C/`) and Fortran (`Fortran/`); work in whichever you
 | File | What it is |
 | --- | --- |
 | `cpi_1.c`, `fpi_1.f90` | Serial starting point |
-| `cpi_2` … `cpi_5`, `fpi_2` … `fpi_5` | The same program after each exercise: the answers |
-| `jacobi_MPI.c` | Larger example (C only): a Jacobi iteration split across processes |
-| `other_solutions/` | Alternative solutions to the final exercise |
+| `solutions/` | The same program after each exercise: the answers (`cpi_2` … `cpi_5`, `fpi_2` … `fpi_5`) |
 | `Makefile` | Builds any example; see below |
 | `slurm_script` | Runs the program you built on 4 MPI processes |
 | `../mk/` | Compiler flags, shared by both languages (leave alone) |
@@ -27,7 +25,7 @@ module load intel-oneapi/2024.2 intel-mpi/oneapi/2021.13
 Then, from `C/` or `Fortran/`:
 
 ```
-make cpi_2            # or: make fpi_2 -- builds an executable called "pi"
+make cpi_1            # or: make fpi_1 -- builds an executable called "pi"
 sbatch slurm_script   # runs it on 4 MPI processes
 cat output.log        # see the result
 ```
@@ -37,6 +35,7 @@ cat output.log        # see the result
 - The program integrates over 10,000,000 slices unless you give another number:
   change the last line of `slurm_script` to `srun ./pi 100000000`, for example.
   `./pi -h` prints the usage.
+- `make cpi_2` … `make cpi_5` (or `fpi_2` …) build the answers in `solutions/`.
 - `make clean` removes the executable.
 - In `C/`, `make cpi_2-cxx` builds the same source as C++.
 - `slurm_script` has a one-minute time limit and sends its output (and any errors) to `output.log`.
