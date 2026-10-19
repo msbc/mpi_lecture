@@ -19,12 +19,15 @@ SLIDES = [
         title="Why parallel computing?",
         bullets=[
             "Time, funding and patience are finite: faster calculations are good",
+            "I once spent 10 million CPU-hours on one simulation: on a single 100-core node, that's over a "
+            "decade (longer than I've had my Ph.D.)",
             "Running independent copies of a code is already parallel; threads (e.g. OpenMP) can share work within "
             "one node",
             "But what if the problem doesn't fit in one node's memory?",
             "Goal: split the work across many cores that cooperate, exchanging data as needed",
         ],
         notes="Human patience/funding/lifespan is finite: speeding up calculations is good. "
+        "10 million CPU-hours / 100 cores = 100,000 hours: over a decade. "
         "Can't we just run n instances of the same code? That's technically parallel computing, "
         "and threads (e.g. OpenMP directives) can share the work within a shared-memory node. "
         "But what if your problem is too large to fit into the memory of a single compute node? "
@@ -39,7 +42,7 @@ SLIDES = [
             (
                 "Shared memory",
                 [
-                    "OpenMP directives (deceptively simple!)",
+                    "OpenMP directives: simple to add, hard to get right",
                     "pthreads: you manage each thread's memory access explicitly",
                     "GPUs: CUDA, OpenACC, OpenMP (also on CPUs)",
                 ],
@@ -62,8 +65,9 @@ SLIDES = [
                 ],
             ),
         ],
-        notes="Multithreading/shared-memory parallelism: directive-based libraries like OpenMP (deceptively "
-        "simple!); more explicit libraries like pthreads/POSIX Threads (somewhat more complicated, since "
+        notes="Multithreading/shared-memory parallelism: directive-based libraries like OpenMP (the directives "
+        "look simple, but using them correctly takes a lot of care: races, shared vs. private data); more "
+        "explicit libraries like pthreads/POSIX Threads (somewhat more complicated, since "
         "one must explicitly manage each thread's access to memory); GPGPU programming libraries like "
         "CUDA, OpenACC (also supports CPUs) and OpenMP (also supports CPUs). "
         "Partitioned global address space: one approach to SPMD parallelism, using globally-addressable "
@@ -189,9 +193,8 @@ SLIDES = [
         title="Running an MPI executable",
         lang="bash",
         sub="Every MPI implementation provides a launcher",
-        code="# MPICH or OpenMPI\n"
-        "mpirun -np <processes> ./code\n"
-        "mpiexec -n <processes> ./code\n"
+        code="# Open MPI or Intel MPI\n"
+        "mpirun -n <processes> ./code\n"
         "\n"
         "# Slurm workload manager (e.g. Princeton clusters)\n"
         "srun ./code",
@@ -448,7 +451,7 @@ SLIDES = [
         code_w=1100,
         bullets=[
             "`nproc`: total number of processes in `MPI_COMM_WORLD`, the same `<processes>` as in "
-            "`mpiexec -n <processes>`",
+            "`mpirun -n <processes>`",
             "`myrank`: this process's rank, a unique number that distinguishes it from every other process in the "
             "communicator",
         ],
