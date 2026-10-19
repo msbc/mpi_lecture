@@ -12,6 +12,7 @@ The repository has two parts: a Keynote deck generated from a Python slide spec,
 | `slides.py` | Slide content and presenter notes: the source of truth for the deck |
 | `build_keynote.py` | Builds `Intro_MPI.key` from `slides.py` (macOS and Keynote only) |
 | `figures/` | Images used by the slides |
+| `figures/src/` | Matplotlib scripts that draw some of those images |
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
 | `ci/check_exercises.py` | Builds and runs every exercise and checks the printed value of π |
 | `ci/sync_shared.py` | Copies the code in `Intro_MPI/shared/` into every exercise |
@@ -37,6 +38,18 @@ uv run build_keynote.py --output /tmp/Intro_MPI.key
   Nothing is saved, so it skips the overwrite check; it still renders any missing cards and equations under `figures/`.
 
 `Intro_MPI.key` is generated and not tracked by git; change `slides.py`, not the deck.
+
+### Figures
+
+Some figures are drawn by scripts in `figures/src/`, which write PNGs into `figures/`.
+Hand-tunable settings (sizes, colors, ticks) are constants at the top of each script.
+
+```
+uv run --active --group figures figures/src/riemann_sum.py    # riemann-sum.png
+uv run --active --group figures figures/src/communication.py  # blocking.png, nonblocking.png
+```
+
+Pass `--show` to open a figure in a window instead of saving it.
 
 ## Exercises
 
