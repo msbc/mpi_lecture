@@ -303,14 +303,14 @@ SLIDES = [
         "  double pi = dx * sum;\n"
         '  printf("Pi is approximately %.16f, "\n'
         '         "with error %.16f\\n", pi,\n'
-        "         fabs(pi - 3.141592653589793238462643));\n"
+        "         fabs(pi - PI25DT));\n"
         "\n"
         "  return 0;\n"
         "}",
-        notes="parse_nslices(), at the top of cpi_1.c, reads the number of slices from the command line "
-        "(./pi 1000000), or uses 10,000,000 if there is none. It returns 0 for -h or --help and -1 for "
-        "anything that isn't a positive whole number; print_usage() then prints the help or the error. "
-        "Long strings are split across lines for display.",
+        notes="PI25DT, the exact value of pi, is defined at the top of cpi_1.c. parse_nslices(), also at the "
+        "top, reads the number of slices from the command line (./pi 1000000), or uses 10,000,000 if there "
+        "is none. It returns 0 for -h or --help and -1 for anything that isn't a positive whole number; "
+        "print_usage() then prints the help or the error. Long strings are split across lines for display.",
     ),
     dict(
         kind="twocode",
@@ -494,6 +494,90 @@ SLIDES = [
         size=32,
     ),
     dict(
+        kind="twocode",
+        title="Exercise #2 solution in C",
+        sub="`solutions/cpi_2.c`",
+        left="int main(int argc, char* argv[]) {\n"
+        "  int nproc;\n"
+        "  int myrank;\n"
+        "\n"
+        "  MPI_Init(&argc, &argv);\n"
+        "  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+        "  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+        "\n"
+        "  int nslices = parse_nslices(argc, argv);\n"
+        "  if (nslices <= 0) {\n"
+        "    if (myrank == 0) {\n"
+        "      print_usage(nslices, argv[0]);\n"
+        "    }\n"
+        "    MPI_Finalize();\n"
+        "    return nslices == 0 ? 0 : 1;\n"
+        "  }\n"
+        '  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);",
+        right="  double dx = 1.0 / (double)nslices;\n"
+        "  double sum = 0.0;\n"
+        "  double x;\n"
+        "  for (int i = 1; i <= nslices; i++) {\n"
+        "    x = dx * ((double)i - 0.5);\n"
+        "    sum += (4.0 / (1.0 + (x * x)));\n"
+        "  }\n"
+        "\n"
+        "  double pi = dx * sum;\n"
+        '  printf("Pi is approximately %.16f, "\n'
+        '         "with error %.16f\\n", pi,\n'
+        "         fabs(pi - PI25DT));\n"
+        "\n"
+        "  MPI_Finalize();\n"
+        "  return 0;\n"
+        "}",
+        notes="main() only: PI25DT, parse_nslices() and print_usage() are at the top of the file. "
+        "Comments are left out and long lines wrapped for display.",
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #2 solution in Fortran",
+        lang="fortran",
+        sub="`solutions/fpi_2.f90`",
+        left="program piapprox\n"
+        "  use mpi_f08, only: MPI_INIT, MPI_FINALIZE, &\n"
+        "    MPI_COMM_SIZE, MPI_COMM_RANK, MPI_COMM_WORLD\n"
+        "  implicit none\n"
+        "  integer, parameter :: dp = kind(1.0d0)\n"
+        "  real(dp), parameter :: &\n"
+        "    PI25DT = 3.141592653589793238462643_dp\n"
+        "  real(dp) :: dx, sum, x, pi\n"
+        "  integer :: nslices, i, ierr, myrank, nproc\n"
+        "\n"
+        "  call MPI_INIT(ierr)\n"
+        "  call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc, ierr)\n"
+        "  call MPI_COMM_RANK(MPI_COMM_WORLD, myrank, ierr)\n"
+        "\n"
+        "  nslices = parse_nslices()\n"
+        "  if (nslices <= 0) then\n"
+        "    if (myrank == 0) call print_usage(nslices)\n"
+        "    call MPI_FINALIZE(ierr)\n"
+        "    if (nslices < 0) stop 1\n"
+        "    stop\n"
+        "  end if\n"
+        '  write(*, *) "  Number of intervals = ", nslices',
+        right="  dx = 1.0_dp / nslices\n"
+        "  sum = 0.0_dp\n"
+        "  do i = 1, nslices\n"
+        "    x = dx * (real(i, dp) - 0.5_dp)\n"
+        "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
+        "  end do\n"
+        "\n"
+        "  pi = dx * sum\n"
+        '  write(*, *) " Pi=", pi, ", Error=", &\n'
+        "              abs(pi - PI25DT)\n"
+        "\n"
+        "  call MPI_FINALIZE(ierr)\n"
+        "end program piapprox",
+        notes="The main program only: parse_nslices() and print_usage() come after the contains line. "
+        "Comments are left out, the use line is reordered, and long lines are continued with & for display.",
+    ),
+    dict(
         kind="split",
         title="Hands-on exercise #3",
         bullets=[
@@ -513,6 +597,92 @@ SLIDES = [
         ],
         code_w=940,
         size=32,
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #3 solution in C",
+        sub="`solutions/cpi_3.c`",
+        left="int main(int argc, char* argv[]) {\n"
+        "  int nproc;\n"
+        "  int myrank;\n"
+        "\n"
+        "  MPI_Init(&argc, &argv);\n"
+        "  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+        "  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+        "\n"
+        "  int nslices = parse_nslices(argc, argv);\n"
+        "  if (nslices <= 0) {\n"
+        "    if (myrank == 0) {\n"
+        "      print_usage(nslices, argv[0]);\n"
+        "    }\n"
+        "    MPI_Finalize();\n"
+        "    return nslices == 0 ? 0 : 1;\n"
+        "  }\n"
+        '  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);",
+        right="  double dx = 1.0 / (double)nslices;\n"
+        "  double sum = 0.0;\n"
+        "  double x;\n"
+        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
+        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "    x = dx * ((double)i - 0.5);\n"
+        "    sum += (4.0 / (1.0 + (x * x)));\n"
+        "  }\n"
+        "\n"
+        "  double pi = dx * sum;\n"
+        '  printf("Pi is approximately %.16f, "\n'
+        '         "with error %.16f\\n", pi,\n'
+        "         fabs(pi - PI25DT));\n"
+        "\n"
+        "  MPI_Finalize();\n"
+        "  return 0;\n"
+        "}",
+        notes="main() only: PI25DT, parse_nslices() and print_usage() are at the top of the file. "
+        "Comments are left out and long lines wrapped for display.",
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #3 solution in Fortran",
+        lang="fortran",
+        sub="`solutions/fpi_3.f90`",
+        left="program piapprox\n"
+        "  use mpi_f08, only: MPI_INIT, MPI_FINALIZE, &\n"
+        "    MPI_COMM_SIZE, MPI_COMM_RANK, MPI_COMM_WORLD\n"
+        "  implicit none\n"
+        "  integer, parameter :: dp = kind(1.0d0)\n"
+        "  real(dp), parameter :: &\n"
+        "    PI25DT = 3.141592653589793238462643_dp\n"
+        "  real(dp) :: dx, sum, x, pi\n"
+        "  integer :: nslices, i, ierr, myrank, nproc\n"
+        "\n"
+        "  call MPI_INIT(ierr)\n"
+        "  call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc, ierr)\n"
+        "  call MPI_COMM_RANK(MPI_COMM_WORLD, myrank, ierr)\n"
+        "\n"
+        "  nslices = parse_nslices()\n"
+        "  if (nslices <= 0) then\n"
+        "    if (myrank == 0) call print_usage(nslices)\n"
+        "    call MPI_FINALIZE(ierr)\n"
+        "    if (nslices < 0) stop 1\n"
+        "    stop\n"
+        "  end if\n"
+        '  write(*, *) "  Number of intervals = ", nslices',
+        right="  dx = 1.0_dp / nslices\n"
+        "  sum = 0.0_dp\n"
+        "  do i = (myrank * nslices) / nproc + 1, &\n"
+        "         ((myrank + 1) * nslices) / nproc\n"
+        "    x = dx * (real(i, dp) - 0.5_dp)\n"
+        "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
+        "  end do\n"
+        "\n"
+        "  pi = dx * sum\n"
+        '  write(*, *) " Pi=", pi, ", Error=", &\n'
+        "              abs(pi - PI25DT)\n"
+        "\n"
+        "  call MPI_FINALIZE(ierr)\n"
+        "end program piapprox",
+        notes="The main program only: parse_nslices() and print_usage() come after the contains line. "
+        "Comments are left out, the use line is reordered, and long lines are continued with & for display.",
     ),
     dict(
         kind="figure",
@@ -744,6 +914,100 @@ SLIDES = [
         "carry on computing.",
     ),
     dict(
+        kind="twocode",
+        title="Exercise #4 solution in C",
+        sub="`solutions/cpi_4a.c`; `cpi_4b.c` calls `MPI_Allreduce` instead",
+        left="int main(int argc, char* argv[]) {\n"
+        "  int nproc;\n"
+        "  int myrank;\n"
+        "\n"
+        "  MPI_Init(&argc, &argv);\n"
+        "  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+        "  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+        "\n"
+        "  int nslices = parse_nslices(argc, argv);\n"
+        "  if (nslices <= 0) {\n"
+        "    if (myrank == 0) {\n"
+        "      print_usage(nslices, argv[0]);\n"
+        "    }\n"
+        "    MPI_Finalize();\n"
+        "    return nslices == 0 ? 0 : 1;\n"
+        "  }\n"
+        '  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);",
+        right="  double dx = 1.0 / (double)nslices;\n"
+        "  double sum = 0.0;\n"
+        "  double x;\n"
+        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
+        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "    x = dx * ((double)i - 0.5);\n"
+        "    sum += (4.0 / (1.0 + (x * x)));\n"
+        "  }\n"
+        "\n"
+        "  double mypi = dx * sum;\n"
+        "  double pi = 0.0;\n"
+        "  MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,\n"
+        "             MPI_COMM_WORLD);\n"
+        '  printf("Pi is approximately %.16f, "\n'
+        '         "with error %.16f\\n", pi,\n'
+        "         fabs(pi - PI25DT));\n"
+        "\n"
+        "  MPI_Finalize();\n"
+        "  return 0;\n"
+        "}",
+        notes="main() only: PI25DT, parse_nslices() and print_usage() are at the top of the file. "
+        "Comments are left out and long lines wrapped for display.",
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #4 solution in Fortran",
+        lang="fortran",
+        sub="`solutions/fpi_4a.f90`; `fpi_4b.f90` calls `MPI_ALLREDUCE` instead",
+        left="program piapprox\n"
+        "  use mpi_f08, only: MPI_INIT, MPI_FINALIZE, &\n"
+        "    MPI_COMM_SIZE, MPI_COMM_RANK, MPI_COMM_WORLD, &\n"
+        "    MPI_REDUCE, MPI_DOUBLE_PRECISION, MPI_SUM\n"
+        "  implicit none\n"
+        "  integer, parameter :: dp = kind(1.0d0)\n"
+        "  real(dp), parameter :: &\n"
+        "    PI25DT = 3.141592653589793238462643_dp\n"
+        "  real(dp) :: dx, sum, x, pi, mypi\n"
+        "  integer :: nslices, i, ierr, myrank, nproc\n"
+        "\n"
+        "  call MPI_INIT(ierr)\n"
+        "  call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc, ierr)\n"
+        "  call MPI_COMM_RANK(MPI_COMM_WORLD, myrank, ierr)\n"
+        "\n"
+        "  nslices = parse_nslices()\n"
+        "  if (nslices <= 0) then\n"
+        "    if (myrank == 0) call print_usage(nslices)\n"
+        "    call MPI_FINALIZE(ierr)\n"
+        "    if (nslices < 0) stop 1\n"
+        "    stop\n"
+        "  end if\n"
+        '  write(*, *) "  Number of intervals = ", nslices',
+        right="  dx = 1.0_dp / nslices\n"
+        "  sum = 0.0_dp\n"
+        "  do i = (myrank * nslices) / nproc + 1, &\n"
+        "         ((myrank + 1) * nslices) / nproc\n"
+        "    x = dx * (real(i, dp) - 0.5_dp)\n"
+        "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
+        "  end do\n"
+        "\n"
+        "  mypi = dx * sum\n"
+        "  pi = 0.0_dp\n"
+        "  call MPI_REDUCE(mypi, pi, 1, &\n"
+        "                  MPI_DOUBLE_PRECISION, &\n"
+        "                  MPI_SUM, 0, MPI_COMM_WORLD, ierr)\n"
+        '  write(*, *) " Pi=", pi, ", Error=", &\n'
+        "              abs(pi - PI25DT)\n"
+        "\n"
+        "  call MPI_FINALIZE(ierr)\n"
+        "end program piapprox",
+        notes="The main program only: parse_nslices() and print_usage() come after the contains line. "
+        "Comments are left out, the use line is reordered, and long lines are continued with & for display.",
+    ),
+    dict(
         kind="split",
         title="Hands-on exercise #5",
         sub="Reading input on one process",
@@ -799,6 +1063,118 @@ SLIDES = [
         code_size=34,
         notes="For very large runs, myrank * nslices overflows an int (past about 2 billion); "
         "use long long for the loop bounds there.",
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #5 solution in C",
+        sub="`solutions/cpi_5.c`",
+        left="int main(int argc, char* argv[]) {\n"
+        "  int nproc;\n"
+        "  int myrank;\n"
+        "\n"
+        "  MPI_Init(&argc, &argv);\n"
+        "  MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+        "  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+        "\n"
+        "  int nslices = 0;\n"
+        "  if (myrank == 0) {\n"
+        "    nslices = parse_nslices(argc, argv);\n"
+        "    if (nslices <= 0) {\n"
+        "      print_usage(nslices, argv[0]);\n"
+        "      if (nslices < 0) {\n"
+        "        MPI_Abort(MPI_COMM_WORLD, 1);\n"
+        "      }\n"
+        "    }\n"
+        "  }\n"
+        "  MPI_Bcast(&nslices, 1, MPI_INT, 0,\n"
+        "            MPI_COMM_WORLD);\n"
+        "\n"
+        "  if (nslices == 0) {\n"
+        "    MPI_Finalize();\n"
+        "    return 0;\n"
+        "  }",
+        right='  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);\n"
+        "\n"
+        "  double dx = 1.0 / (double)nslices;\n"
+        "  double sum = 0.0;\n"
+        "  double x;\n"
+        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
+        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "    x = dx * ((double)i - 0.5);\n"
+        "    sum += (4.0 / (1.0 + (x * x)));\n"
+        "  }\n"
+        "\n"
+        "  double mypi = dx * sum;\n"
+        "  double pi = 0.0;\n"
+        "  MPI_Allreduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM,\n"
+        "                MPI_COMM_WORLD);\n"
+        '  printf("Pi is approximately %.16f, "\n'
+        '         "with error %.16f\\n", pi,\n'
+        "         fabs(pi - PI25DT));\n"
+        "\n"
+        "  MPI_Finalize();\n"
+        "  return 0;\n"
+        "}",
+        notes="main() only: PI25DT, parse_nslices() and print_usage() are at the top of the file. "
+        "Comments are left out and long lines wrapped for display.",
+    ),
+    dict(
+        kind="twocode",
+        title="Exercise #5 solution in Fortran",
+        lang="fortran",
+        sub="`solutions/fpi_5.f90`",
+        left="program piapprox\n"
+        "  use mpi_f08, only: MPI_INIT, MPI_FINALIZE, &\n"
+        "    MPI_COMM_SIZE, MPI_COMM_RANK, MPI_COMM_WORLD, &\n"
+        "    MPI_BCAST, MPI_INTEGER, MPI_ABORT, &\n"
+        "    MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_SUM\n"
+        "  implicit none\n"
+        "  integer, parameter :: dp = kind(1.0d0)\n"
+        "  real(dp), parameter :: &\n"
+        "    PI25DT = 3.141592653589793238462643_dp\n"
+        "  real(dp) :: dx, sum, x, pi, mypi\n"
+        "  integer :: nslices, i, ierr, myrank, nproc\n"
+        "\n"
+        "  call MPI_INIT(ierr)\n"
+        "  call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc, ierr)\n"
+        "  call MPI_COMM_RANK(MPI_COMM_WORLD, myrank, ierr)\n"
+        "\n"
+        "  nslices = 0\n"
+        "  if (myrank == 0) then\n"
+        "    nslices = parse_nslices()\n"
+        "    if (nslices <= 0) call print_usage(nslices)\n"
+        "    if (nslices < 0) &\n"
+        "      call MPI_ABORT(MPI_COMM_WORLD, 1, ierr)\n"
+        "  end if",
+        right="  call MPI_BCAST(nslices, 1, MPI_INTEGER, 0, &\n"
+        "                 MPI_COMM_WORLD, ierr)\n"
+        "  if (nslices == 0) then\n"
+        "    call MPI_FINALIZE(ierr)\n"
+        "    stop\n"
+        "  end if\n"
+        '  write(*, *) "  Number of intervals = ", nslices\n'
+        "\n"
+        "  dx = 1.0_dp / nslices\n"
+        "  sum = 0.0_dp\n"
+        "  do i = (myrank * nslices) / nproc + 1, &\n"
+        "         ((myrank + 1) * nslices) / nproc\n"
+        "    x = dx * (real(i, dp) - 0.5_dp)\n"
+        "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
+        "  end do\n"
+        "\n"
+        "  mypi = dx * sum\n"
+        "  pi = 0.0_dp\n"
+        "  call MPI_ALLREDUCE(mypi, pi, 1, &\n"
+        "                     MPI_DOUBLE_PRECISION, &\n"
+        "                     MPI_SUM, MPI_COMM_WORLD, ierr)\n"
+        '  write(*, *) " Pi=", pi, ", Error=", &\n'
+        "              abs(pi - PI25DT)\n"
+        "\n"
+        "  call MPI_FINALIZE(ierr)\n"
+        "end program piapprox",
+        notes="The main program only: parse_nslices() and print_usage() come after the contains line. "
+        "Comments are left out, the use line is reordered, and long lines are continued with & for display.",
     ),
     # --------------------------------------------------- blocking/non-blocking
     dict(kind="section", title="Blocking and non-blocking communication"),

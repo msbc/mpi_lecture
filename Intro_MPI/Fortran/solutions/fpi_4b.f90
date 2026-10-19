@@ -3,7 +3,10 @@ program piapprox
                      MPI_DOUBLE_PRECISION, MPI_FINALIZE, MPI_INIT, MPI_SUM
   implicit none
   integer, parameter :: dp = kind(1.0d0)
+  ! BEGIN shared: pi (copied from Intro_MPI/shared by ci/sync_shared.py)
+  ! pi to 25 digits, to measure the error in our estimate
   real(dp), parameter :: PI25DT = 3.141592653589793238462643_dp
+  ! END shared: pi
   real(dp) :: dx, sum, x, pi, mypi
   integer :: nslices, i, ierr, myrank, nproc
 

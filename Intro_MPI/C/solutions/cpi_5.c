@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* BEGIN shared: pi (copied from Intro_MPI/shared by ci/sync_shared.py) */
+/* pi to 25 digits, to measure the error in our estimate */
+static const double PI25DT = 3.141592653589793238462643;
+/* END shared: pi */
+
 /* BEGIN shared: parse_nslices (copied from Intro_MPI/shared by ci/sync_shared.py) */
 static const int DEFAULT_NSLICES = 10000000;
 
@@ -87,8 +92,7 @@ int main(int argc, char* argv[]) {
    * add up using MPI_SUM */
   MPI_Allreduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-  printf("Pi is approximately %.16f, with error %.16f\n", pi,
-         fabs(pi - 3.141592653589793238462643));
+  printf("Pi is approximately %.16f, with error %.16f\n", pi, fabs(pi - PI25DT));
 
   MPI_Finalize();
   return 0;
