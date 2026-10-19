@@ -79,12 +79,10 @@ def main():
     xm = XLIM[0] + (np.arange(NSLICES) + 0.5) * dx
     midpoint_sum = np.sum(f(xm)) * dx
     err = np.abs(midpoint_sum - np.pi)
-    e_exp = int(np.floor(np.log10(err)))
-    e_mant = err / 10**e_exp
+    e_mant, e_exp = f"{err:.1e}".split("e")  # round first, so 9.97e-4 shows as 1.0e-3, not 10.0e-4
+    e_exp = int(e_exp)
 
     # midpoint rectangles
-    dx = (XLIM[1] - XLIM[0]) / NSLICES
-    xm = XLIM[0] + (np.arange(NSLICES) + 0.5) * dx
     ax.bar(xm, f(xm), width=dx, color=BAR_FILL, alpha=BAR_ALPHA, zorder=1)
     ax.bar(xm, f(xm), width=dx, fill=False, edgecolor=BAR_EDGE, linewidth=1.2, zorder=2)
     ax.plot(xm, f(xm), "x", color=MIDPOINT, markersize=8, zorder=4, markeredgewidth=1.5)
@@ -92,7 +90,7 @@ def main():
     # the integrand
     x = np.linspace(XLIM[0], XLIM[1], 400)
     ax.plot(x, f(x), color=CURVE, linewidth=2.5, zorder=3)
-    lbl = r"$\varepsilon_n = " + f"{e_mant:.1f}" + r" \times 10^{" + f"{e_exp}" + r"}$"
+    lbl = r"$\varepsilon_n = " + e_mant + r" \times 10^{" + f"{e_exp}" + r"}$"
     lbl += "\n" + r"$f(x) = \frac{4}{1 + x^2}$" + f"\n$n = {NSLICES}$"
     ax.text(0.95, 0.98, lbl, transform=ax.transAxes, ha="right", va="top", fontsize=FONTSIZE + 3)
 
