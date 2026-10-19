@@ -145,6 +145,17 @@ def q(s):
     return " & LS & ".join(f'"{p}"' for p in parts)
 
 
+def inline_code(s):
+    """Strip `backtick` markup; return (plain text, 1-based inclusive character ranges to set in MONO)."""
+    plain, ranges, pos = [], [], 0
+    for i, part in enumerate(s.split("`")):
+        if i % 2 and part:
+            ranges.append((pos + 1, pos + len(part)))
+        plain.append(part)
+        pos += len(part)
+    return "".join(plain), ranges
+
+
 class Slide:
     def __init__(self, out, master):
         self.o = out
@@ -155,8 +166,14 @@ class Slide:
     def cmd(self, line):
         self.o.append(line)
 
+    def mono(self, ranges, item, indent=""):
+        """Set the inline-code character ranges of `item`'s text in MONO."""
+        for a, b in ranges:
+            self.cmd(f'{indent}set font of characters {a} thru {b} of object text of {item} to "{MONO}"')
+
     def placeholder_text(self, y, text, font=None, size=None):
         """Set text of the master placeholder shape whose top edge is at y (or delete it if text is None)."""
+        text, ranges = inline_code(text) if text is not None else (None, [])
         self.cmd(
             f"set shs to {{}}\n"
             f"try\n  set shs to (every shape of s)\nend try\n"
@@ -169,6 +186,9 @@ class Slide:
                 else f"    set object text of sh to {q(text)}\n"
                 + (f'    set font of object text of sh to "{font}"\n' if font else "")
                 + (f"    set size of object text of sh to {size}\n" if size else "")
+                + "".join(
+                    f'    set font of characters {a} thru {b} of object text of sh to "{MONO}"\n' for a, b in ranges
+                )
             )
             + "    exit repeat\n  end if\nend repeat"
         )
@@ -186,12 +206,14 @@ class Slide:
 
     def body(self, bullets, x=X0, y=Y0, w=CW, h=None, size=None):
         h = h or (YMAX - y)
-        self.cmd(f"set object text of default body item of s to {q(chr(10).join(bullets))}")
+        text, ranges = inline_code(chr(10).join(bullets))
+        self.cmd(f"set object text of default body item of s to {q(text)}")
         self.cmd(f"set position of default body item of s to {{{x}, {y}}}")
         self.cmd(f"set width of default body item of s to {w}")
         self.cmd(f"set height of default body item of s to {h}")
         if size:
             self.cmd(f"set size of object text of default body item of s to {size}")
+        self.mono(ranges, "default body item of s")
 
     def image(self, path, x, y, w, h):
         self.cmd(f'tell s to set im to make new image with properties {{file:POSIX file "{path}"}}')
@@ -200,6 +222,8 @@ class Slide:
         self.cmd(f"set position of im to {{{x}, {y}}}")
 
     def text(self, s, x, y, w, size=36, font=SANS, color=TEXT):
+        """Text item; outside code blocks (font MONO), `backticks` mark inline code."""
+        s, ranges = inline_code(s) if font != MONO else (s, [])
         self.cmd("tell s to set ti to make new text item")
         self.cmd(f"set object text of ti to {q(s)}")
         self.cmd(f'set font of object text of ti to "{font}"')
@@ -207,6 +231,7 @@ class Slide:
         self.cmd(f"set color of object text of ti to {{{color[0]}, {color[1]}, {color[2]}}}")
         self.cmd(f"set width of ti to {w}")
         self.cmd(f"set position of ti to {{{x}, {y}}}")
+        self.mono(ranges, "ti")
 
     def notes(self, s):
         self.cmd(f"set presenter notes of s to {q(s)}")
@@ -334,12 +359,22 @@ def build(spec, out):
         sl = Slide(out, "Title & Bullets")
         sl.title(spec["title"], spec.get("sub"))
         sl.body(spec["bullets"], size=spec.get("size"))
-    elif k == "split":  # bullets left, code right
+    elif k == "split":  # bullets left, code right (code: a string, or a list of strings / (code, lang) stacked)
         sl = Slide(out, "Title & Bullets")
         sl.title(spec["title"], spec.get("sub"))
         cw = spec.get("code_w", 900)
         sl.body(spec["bullets"], w=CW - cw - 60, size=spec.get("size", 36))
-        add_code(sl, spec["code"], X0 + CW - cw, Y0 + 20, cw, size=spec.get("code_size"), lang=lang)
+        code = [spec["code"]] if isinstance(spec["code"], str) else spec["code"]
+        blocks = [b if isinstance(b, tuple) else (b, lang) for b in code]
+        gap, y = 30, Y0 + 20
+        # one font size for all blocks: each fits the width, and together they fit the height
+        nlines = sum(c.count("\n") + 1 for c, _ in blocks)
+        room = YMAX - y - gap * (len(blocks) - 1) - len(blocks) * (2 * PAD + 10)
+        size = spec.get("code_size") or int(
+            min(min(code_size(c, cw, 10**4) for c, _ in blocks), room / (LINE * nlines))
+        )
+        for c, lg in blocks:
+            y += add_code(sl, c, X0 + CW - cw, y, cw, size=size, lang=lg) + gap
     elif k == "code":  # code card on top, optional bullets below
         sl = Slide(out, "Title & Bullets" if spec.get("bullets") else "Title Only")
         sl.title(spec["title"], spec.get("sub"))
@@ -451,7 +486,8 @@ def main():
         dest = args.export_png
         os.makedirs(dest, exist_ok=True)
         out.append(f'export d to POSIX file "{dest}" as slide images with properties {{image format:PNG}}')
-    out += ["return (count of slides of d)", "end tell"]
+    # close the saved deck so builds don't pile up open windows in Keynote
+    out += ["set n to count of slides of d", "close d saving no", "return n", "end tell"]
     script = "\n".join(out)
     path = os.path.join(CARDS, "build.applescript")
     os.makedirs(CARDS, exist_ok=True)

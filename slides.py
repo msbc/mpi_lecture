@@ -172,8 +172,8 @@ SLIDES = [
         lang="make",
         bullets=[
             "We're lazy: we'd rather not compile and link by hand",
-            "Let make do it for us",
-            "The exercise Makefiles also pick flags to suit the compiler that mpicc calls",
+            "Let `make` do it for us",
+            "The exercise Makefiles also pick flags to suit the compiler that `mpicc` calls",
         ],
         code="CC     = mpicc\n"
         "CFLAGS = -O2 -g -Wall -Wextra -std=c99\n"
@@ -195,7 +195,7 @@ SLIDES = [
         "# Slurm workload manager (e.g. Princeton clusters)\n"
         "srun ./code",
         code_size=38,
-        bullets=["Inside a Slurm job, srun needs no flags: it starts one process per task you requested"],
+        bullets=["Inside a Slurm job, `srun` needs no flags: it starts one process per task you requested"],
         size=34,
     ),
     dict(
@@ -229,9 +229,9 @@ SLIDES = [
         "srun ./code",
         code_size=30,
         bullets=[
-            "16 processes fit on one node: --nodes 2 is here only to show how to set up a multi-node job",
+            "16 processes fit on one node: `--nodes 2` is here only to show how to set up a multi-node job",
             "In practice, use as few nodes as you need: extra nodes add communication cost and queue time",
-            "Slurm accepts both --ntasks 16 and --ntasks=16; we use the space form throughout",
+            "Slurm accepts both `--ntasks 16` and `--ntasks=16`; we use the space form throughout",
         ],
         size=32,
     ),
@@ -272,7 +272,7 @@ SLIDES = [
                 "imgtext",
                 "riemann-sum.png",
                 540,
-                "Split [0, 1] into nslices slices of width Δx\n"
+                "Split [0, 1] into `nslices` slices of width Δx\n"
                 "Evaluate f at each slice's midpoint, xᵢ = (i − ½) Δx\n"
                 "Here f(x) = 4 / (1 + x²), so the sum approaches π",
             ),
@@ -282,7 +282,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Serial π in C",
-        sub="cpi_1.c",
+        sub="`cpi_1.c`",
         left="int main(int argc, char* argv[]) {\n"
         "  int nslices = parse_nslices(argc, argv);\n"
         "  if (nslices <= 0) {\n"
@@ -316,7 +316,7 @@ SLIDES = [
         kind="twocode",
         title="Serial π in Fortran",
         lang="fortran",
-        sub="fpi_1.f90",
+        sub="`fpi_1.f90`",
         left="program piapprox\n"
         "  implicit none\n"
         "  integer, parameter :: dp = kind(1.0d0)\n"
@@ -370,14 +370,21 @@ SLIDES = [
         sub="Build and run",
         lang="bash",
         bullets=[
-            "Skim the Makefile and slurm_script (both deliberately simple)",
-            "Look at cpi_1.c or fpi_1.f90: the code from the previous slides",
+            "Skim the `Makefile` and `slurm_script` (both deliberately simple)",
+            "Look at `cpi_1.c` or `fpi_1.f90`: the code from the previous slides",
             "Build it, run it in serial, then run it in parallel with Slurm",
-            "Check output.log: how do the serial and parallel runs differ?",
+            "Check `output.log`: how do the serial and parallel runs differ?",
         ],
-        code="make cpi_1    # or: make fpi_1\n./pi\n\nsbatch slurm_script",
-        code_w=760,
-        size=34,
+        code=[
+            "ssh <netID>@adroit.princeton.edu\n"
+            "module load intel-oneapi/2024.2 \\\n"
+            "            intel-mpi/oneapi/2021.13\n"
+            "cp -r /home/msbc/Intro_MPI .\n"
+            "cd Intro_MPI/C    # or Fortran",
+            "make cpi_1        # or fpi_1\n./pi\nsbatch slurm_script",
+        ],
+        code_w=860,
+        size=32,
     ),
     # ---------------------------------------------------------- fundamentals
     dict(kind="section", title="MPI fundamentals"),
@@ -389,7 +396,7 @@ SLIDES = [
             "Each process has a unique rank in it: 0, 1, …, n − 1",
             "MPI maps these abstract processes onto concrete processing units",
             "Every communication call names a communicator",
-            "Default: MPI_COMM_WORLD, which contains all processes",
+            "Default: `MPI_COMM_WORLD`, which contains all processes",
             "A process can belong to several communicators, with a separate rank in each",
         ],
         size=34,
@@ -424,9 +431,9 @@ SLIDES = [
         code_size=38,
         code_w=1100,
         bullets=[
-            "mpi.h defines all MPI parameters and functions, so include it in every source file that calls MPI",
-            "Fortran: use mpi_f08, the modern module that checks the arguments of every MPI call",
-            "MPI_Init must come before any other MPI call",
+            "`mpi.h` defines all MPI parameters and functions, so include it in every source file that calls MPI",
+            "Fortran: use `mpi_f08`, the modern module that checks the arguments of every MPI call",
+            "`MPI_Init` must come before any other MPI call",
             "It sets up communication channels between all processes and assigns each one a rank",
         ],
     ),
@@ -437,8 +444,9 @@ SLIDES = [
         code_size=38,
         code_w=1100,
         bullets=[
-            "nproc: total number of processes in MPI_COMM_WORLD, the same <processes> as in mpiexec -n <processes>",
-            "myrank: this process's rank, a unique number that distinguishes it from every other process in the "
+            "`nproc`: total number of processes in `MPI_COMM_WORLD`, the same `<processes>` as in "
+            "`mpiexec -n <processes>`",
+            "`myrank`: this process's rank, a unique number that distinguishes it from every other process in the "
             "communicator",
         ],
     ),
@@ -451,31 +459,60 @@ SLIDES = [
         bullets=[
             "Call at the end, after all other MPI calls",
             "Closes all communication channels and cleans up; no MPI calls after this",
-            "Fortran: MPI_INIT, MPI_COMM_SIZE, MPI_COMM_RANK and MPI_FINALIZE take an extra ierr argument, optional "
-            "with mpi_f08 (C returns the error code)",
+            "Fortran: `MPI_INIT`, `MPI_COMM_SIZE`, `MPI_COMM_RANK` and `MPI_FINALIZE` take an extra `ierr` "
+            "argument, optional "
+            "with `mpi_f08` (C returns the error code)",
         ],
     ),
     dict(
-        kind="bullets",
+        kind="split",
         title="Hands-on exercise #2",
         bullets=[
-            "Add MPI initialization, size, rank and termination calls to cpi_1.c or fpi_1.f90",
-            "Build, then run in parallel again: sbatch slurm_script",
-            "Look at the new output.log: any difference from the previous parallel run?",
-            "Stuck? The answers are in solutions/cpi_2.c and solutions/fpi_2.f90",
+            "Add MPI initialization, size, rank and termination calls to `cpi_1.c` or `fpi_1.f90`",
+            "Build, then run in parallel again: `sbatch slurm_script`",
+            "Look at the new `output.log`: any difference from the previous parallel run?",
+            "Stuck? The answers are in `solutions/cpi_2.c` and `solutions/fpi_2.f90`",
         ],
-        size=36,
+        code=[
+            "#include <mpi.h>\n"
+            "\n"
+            "MPI_Init(&argc, &argv);\n"
+            "MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+            "MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+            "MPI_Finalize();",
+            (
+                "use mpi_f08\n"
+                "\n"
+                "call MPI_INIT()\n"
+                "call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc)\n"
+                "call MPI_COMM_RANK(MPI_COMM_WORLD, myrank)\n"
+                "call MPI_FINALIZE()",
+                "fortran",
+            ),
+        ],
+        code_w=940,
+        size=32,
     ),
     dict(
-        kind="bullets",
+        kind="split",
         title="Hands-on exercise #3",
         bullets=[
-            "Use myrank and nproc to divide the integral evenly across all processes",
-            "Hint: change the bounds of the for / do loop (beware off-by-one errors!)",
-            "Build, run with sbatch slurm_script, and look at output.log. What do you see?",
-            "Stuck? The answers are in solutions/cpi_3.c and solutions/fpi_3.f90",
+            "Use `myrank` and `nproc` to divide the integral evenly across all processes",
+            "Hint: change the bounds of the `for` / `do` loop (beware off-by-one errors!)",
+            "Build, run with `sbatch slurm_script`, and look at `output.log`. What do you see?",
+            "Stuck? The answers are in `solutions/cpi_3.c` and `solutions/fpi_3.f90`",
         ],
-        size=36,
+        code=[
+            "// myrank runs from 0 to nproc - 1\n"
+            "MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
+            "MPI_Comm_rank(MPI_COMM_WORLD, &myrank);",
+            (
+                "call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc)\ncall MPI_COMM_RANK(MPI_COMM_WORLD, myrank)",
+                "fortran",
+            ),
+        ],
+        code_w=940,
+        size=32,
     ),
     dict(
         kind="figure",
@@ -492,8 +529,8 @@ SLIDES = [
         bullets=[
             "Point-to-point: exactly two processes exchange data. This is the building block for every other MPI call",
             "Collective: one call handles communication among all processes in a communicator",
-            "Three kinds of collectives: data movement (MPI_Bcast), reduction (MPI_Reduce) and synchronization "
-            "(MPI_Barrier)",
+            "Three kinds of collectives: data movement (`MPI_Bcast`), reduction (`MPI_Reduce`) and synchronization "
+            "(`MPI_Barrier`)",
         ],
         size=36,
     ),
@@ -510,17 +547,19 @@ SLIDES = [
         "                 recvbuf, recvcount, recvtype, source, recvtag,\n"
         "                 comm, status)",
         code_size=32,
+        bullets=["Fortran: subroutines, with the same arguments plus a final `ierror` (optional with `mpi_f08`)"],
+        size=32,
     ),
     dict(
         kind="bullets",
         title="Point-to-point arguments",
         bullets=[
-            "buf: pointer to the data being sent or received",
-            "datatype in C: MPI_INT, MPI_LONG, MPI_SHORT, MPI_FLOAT, MPI_DOUBLE, …",
-            "datatype in Fortran: MPI_INTEGER, MPI_REAL, MPI_DOUBLE_PRECISION, MPI_COMPLEX, MPI_CHARACTER, "
-            "MPI_LOGICAL, …",
-            "comm: usually MPI_COMM_WORLD",
-            "Fortran versions take an extra ierr argument; in C it's the return value",
+            "`buf`: pointer to the data being sent or received",
+            "`datatype` in C: `MPI_INT`, `MPI_LONG`, `MPI_SHORT`, `MPI_FLOAT`, `MPI_DOUBLE`, …",
+            "`datatype` in Fortran: `MPI_INTEGER`, `MPI_REAL`, `MPI_DOUBLE_PRECISION`, `MPI_COMPLEX`, `MPI_CHARACTER`, "
+            "`MPI_LOGICAL`, …",
+            "`comm`: usually `MPI_COMM_WORLD`",
+            "Fortran versions take an extra `ierr` argument; in C it's the return value",
         ],
         size=34,
     ),
@@ -528,7 +567,7 @@ SLIDES = [
         kind="split",
         title="MPI_PROC_NULL",
         bullets=[
-            "A “do nothing” source or destination for MPI_Send, MPI_Recv and MPI_Sendrecv",
+            "A “do nothing” source or destination for `MPI_Send`, `MPI_Recv` and `MPI_Sendrecv`",
             "Behaves as if the call were wrapped in a check",
         ],
         code="// C\n"
@@ -548,16 +587,17 @@ SLIDES = [
         sub="A root process collects data from all processes and combines it",
         code="int MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm)",
         image="mpi-reduce.png",
-        caption="MPI_Reduce with the MPI_SUM operation",
+        caption="`MPI_Reduce` with the `MPI_SUM` operation",
     ),
     dict(
         kind="bullets",
         title="Reduction",
         bullets=[
-            "Called by every process in the communicator, with matching arguments (the same count, datatype, op and "
-            "root)",
-            "Operations: MPI_SUM, MPI_MIN, MPI_MAX, MPI_PROD, logical AND, OR, XOR, and more",
-            "Define your own with MPI_Op_create()",
+            "Called by every process in the communicator, with matching arguments (the same `count`, `datatype`, "
+            "`op` and "
+            "`root`)",
+            "Operations: `MPI_SUM`, `MPI_MIN`, `MPI_MAX`, `MPI_PROD`, logical AND, OR, XOR, and more",
+            "Define your own with `MPI_Op_create()`",
             "Floating-point results can differ slightly between runs or process counts, because the order of "
             "additions changes",
         ],
@@ -568,18 +608,18 @@ SLIDES = [
         sub="Every process receives the combined result",
         code="int MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)",
         image="mpi-allreduce.png",
-        caption="MPI_Allreduce with the MPI_SUM operation",
+        caption="`MPI_Allreduce` with the `MPI_SUM` operation",
     ),
     dict(
         kind="figpair",
         title="Reduction to all",
         sub="The algorithm matters",
         lines=[
-            "Called by all processes with matching arguments; same operations as MPI_Reduce",
+            "Called by all processes with matching arguments; same operations as `MPI_Reduce`",
             "The reduction algorithm used has a big impact on efficiency",
         ],
         images=[
-            ("reduce-naive.png", "Direct but inefficient MPI_MAX reduction"),
+            ("reduce-naive.png", "Direct but inefficient `MPI_MAX` reduction"),
             ("reduce-tree.png", "Reduction tree: data from n − 1 processes in log(n) steps"),
         ],
     ),
@@ -589,9 +629,9 @@ SLIDES = [
         sub="A root process sends the same data to every process",
         code="int MPI_Bcast(buffer, count, datatype, root, comm)",
         image="mpi-bcast.png",
-        caption="MPI_Bcast",
-        after="Called by all processes in the communicator, with matching arguments (the same root, count and "
-        "datatype)",
+        caption="`MPI_Bcast`",
+        after="Called by all processes in the communicator, with matching arguments (the same `root`, `count` and "
+        "`datatype`)",
     ),
     dict(
         kind="figure",
@@ -599,16 +639,16 @@ SLIDES = [
         sub="A root process collects data from every process",
         code="int MPI_Gather(sendbuf, sendcount, sendtype,\n               recvbuf, recvcount, recvtype, root, comm)",
         image="mpi-gather.png",
-        caption="MPI_Gather with sendcount = 1",
+        caption="`MPI_Gather` with `sendcount = 1`",
     ),
     dict(
         kind="bullets",
         title="Gather",
         bullets=[
             "Called by all processes in the communicator, with matching arguments",
-            "sendcount is the number of elements sent by each process, not the number the root receives (1 in the "
+            "`sendcount` is the number of elements sent by each process, not the number the root receives (1 in the "
             "previous example)",
-            "The receive buffer must have room for at least sendcount × nproc elements",
+            "The receive buffer must have room for at least `sendcount × nproc` elements",
         ],
     ),
     dict(
@@ -617,15 +657,15 @@ SLIDES = [
         sub="Every process ends up with everyone's data",
         code="int MPI_Allgather(sendbuf, sendcount, sendtype,\n                  recvbuf, recvcount, recvtype, comm)",
         image="mpi-allgather.png",
-        caption="MPI_Allgather with sendcount = 1",
+        caption="`MPI_Allgather` with `sendcount = 1`",
     ),
     dict(
         kind="bullets",
         title="Gather to all",
         bullets=[
             "Called by all processes in the communicator, with matching arguments",
-            "Again, sendcount is the number of elements sent, not received",
-            "Again, the receive buffer needs room for at least sendcount × nproc elements",
+            "Again, `sendcount` is the number of elements sent, not received",
+            "Again, the receive buffer needs room for at least `sendcount × nproc` elements",
         ],
     ),
     dict(
@@ -654,7 +694,7 @@ SLIDES = [
         bullets=[
             "Every process in the communicator waits until all of them reach the same point in the code",
             "Often very expensive: use sparingly!",
-            "As ever, the Fortran versions take an extra ierr argument",
+            "As ever, the Fortran versions take an extra `ierr` argument",
         ],
     ),
     # ------------------------------------------------------ putting it together
@@ -663,9 +703,9 @@ SLIDES = [
         kind="split",
         title="Timing your MPI code",
         bullets=[
-            "MPI_Wtime returns the seconds elapsed since some arbitrary time in the past",
+            "`MPI_Wtime` returns the seconds elapsed since some arbitrary time in the past",
             "Call it at the start and end of a section; the difference is the elapsed time",
-            "This is one place where an MPI_Barrier is typically mandatory",
+            "This is one place where an `MPI_Barrier` is typically mandatory",
         ],
         code="double MPI_Wtime()              // C\n"
         "double precision MPI_WTIME()    ! Fortran\n"
@@ -679,15 +719,24 @@ SLIDES = [
         size=34,
     ),
     dict(
-        kind="bullets",
+        kind="split",
         title="Hands-on exercise #4",
         bullets=[
             "Add the MPI call(s) that collect each process's piece of π and add them together",
-            "Build, run with sbatch slurm_script, and check output.log: did you get the right answer?",
+            "Build, run with `sbatch slurm_script`, and check `output.log`: did you get the right answer?",
             "Which other MPI call could do this? What are the advantages of each approach?",
-            "Stuck? See cpi_4a.c and cpi_4b.c, or fpi_4a.f90 and fpi_4b.f90, in solutions/",
+            "Stuck? See `cpi_4a.c` and `cpi_4b.c`, or `fpi_4a.f90` and `fpi_4b.f90`, in `solutions/`",
         ],
-        size=36,
+        code=[
+            "MPI_Reduce(sendbuf, recvbuf, count,\n"
+            "           datatype, op, root, comm)\n"
+            "\n"
+            "MPI_Allreduce(sendbuf, recvbuf, count,\n"
+            "              datatype, op, comm)",
+            "datatype = MPI_DOUBLE            // C\ndatatype = MPI_DOUBLE_PRECISION  ! Fortran\nop       = MPI_SUM",
+        ],
+        code_w=860,
+        size=32,
         notes="The two solutions differ in one call. cpi_4a uses MPI_Reduce: only the root (rank 0) gets the "
         "sum, so the other ranks print the 0 they started with; that is expected, not a bug. cpi_4b uses "
         "MPI_Allreduce: every rank gets the sum, at the cost of extra communication. Use MPI_Reduce when only "
@@ -695,23 +744,28 @@ SLIDES = [
         "carry on computing.",
     ),
     dict(
-        kind="bullets",
+        kind="split",
         title="Hands-on exercise #5",
         sub="Reading input on one process",
         bullets=[
-            "So far every process reads nslices from the command line itself",
+            "So far every process reads `nslices` from the command line itself",
             "The MPI standard doesn't promise that every process gets the command-line arguments",
             "(Input files are similar: thousands of processes reading one file at once is slow)",
             "Make only the root process (rank 0) read the input…",
-            "…then use MPI to share it with every process in MPI_COMM_WORLD",
-            "Stuck? See solutions/cpi_5.c and solutions/fpi_5.f90",
+            "…then use MPI to share it with every process in `MPI_COMM_WORLD`",
+            "Stuck? See `solutions/cpi_5.c` and `solutions/fpi_5.f90`",
         ],
-        size=34,
+        code=[
+            "MPI_Bcast(buffer, count, datatype,\n          root, comm)\n\nMPI_Abort(comm, errorcode)",
+            "datatype = MPI_INT      // C\ndatatype = MPI_INTEGER  ! Fortran",
+        ],
+        code_w=760,
+        size=30,
     ),
     dict(
         kind="code",
         title="One possible solution",
-        sub="The root reads the command line, then broadcasts nslices",
+        sub="The root reads the command line, then broadcasts `nslices`",
         code="if (myrank == 0) {\n"
         "  nslices = parse_nslices(argc, argv);\n"
         "  if (nslices <= 0) {\n"
@@ -724,14 +778,14 @@ SLIDES = [
         "\n"
         "MPI_Bcast(&nslices, 1, MPI_INT, 0, MPI_COMM_WORLD);",
         code_size=32,
-        bullets=["MPI_Abort stops every process, not just the one that hit the error"],
+        bullets=["`MPI_Abort` stops every process, not just the one that hit the error"],
         notes="After the broadcast, nslices is 0 on every process if rank 0 was given -h, "
         "so they all call MPI_Finalize and stop.",
     ),
     dict(
         kind="code",
         title="One possible solution",
-        sub="Each process sums its own slices; MPI_Allreduce adds them up",
+        sub="Each process sums its own slices; `MPI_Allreduce` adds them up",
         code="for (int i = ((myrank * nslices) / nproc) + 1;\n"
         "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
         "  x = dx * ((double)i - 0.5);\n"
@@ -755,8 +809,9 @@ SLIDES = [
         caption="Blocking communication between two processes",
         bullets=[
             "Everything so far has been blocking: a call returns once its buffer is safe to use",
-            "MPI_Send may return once the data is copied to a system buffer, or wait until the matching receive starts",
-            "So two processes that both send first can deadlock: use MPI_Sendrecv, or non-blocking calls",
+            "`MPI_Send` may return once the data is copied to a system buffer, or wait until the matching receive "
+            "starts",
+            "So two processes that both send first can deadlock: use `MPI_Sendrecv`, or non-blocking calls",
             "All collectives are blocking by design (with one caveat…)",
         ],
     ),
@@ -781,8 +836,8 @@ SLIDES = [
         "int MPI_Test(request, flag, status)",
         code_size=32,
         bullets=[
-            "request identifies the send or receive operation",
-            "MPI_Test sets flag to true if the operation has completed, false otherwise",
+            "`request` identifies the send or receive operation",
+            "`MPI_Test` sets `flag` to `true` if the operation has completed, `false` otherwise",
             "Post the receive before the send: the matching buffer is ready when the message arrives, which avoids "
             "an extra copy",
         ],
@@ -795,8 +850,8 @@ SLIDES = [
         code_size=36,
         code_w=1100,
         bullets=[
-            "Alternatively, block until the operation completes with MPI_Wait, or MPI_Waitall for several at once",
-            "status says which source and tag a message came from; pass MPI_STATUS_IGNORE if you don't need it",
+            "Alternatively, block until the operation completes with `MPI_Wait`, or `MPI_Waitall` for several at once",
+            "`status` says which `source` and `tag` a message came from; pass `MPI_STATUS_IGNORE` if you don't need it",
         ],
     ),
     dict(
@@ -808,9 +863,9 @@ SLIDES = [
         "int MPI_Ireduce(sendbuf, recvbuf, count, datatype, op, root, comm, request)",
         code_size=30,
         bullets=[
-            "The same arguments as MPI_Bcast and MPI_Reduce, plus a request",
+            "The same arguments as `MPI_Bcast` and `MPI_Reduce`, plus a `request`",
             "Every process in the communicator still has to make the call",
-            "Don't touch the buffers until MPI_Wait or MPI_Test says the operation has completed",
+            "Don't touch the buffers until `MPI_Wait` or `MPI_Test` says the operation has completed",
         ],
         size=34,
     ),
@@ -818,11 +873,11 @@ SLIDES = [
         kind="bullets",
         title="Where next?",
         bullets=[
-            "Grids and halo exchange: MPI_Cart_create and neighbor collectives (MPI_Neighbor_alltoall)",
-            "Your own communicators: MPI_Comm_split, and MPI_Comm_split_type for processes sharing a node",
+            "Grids and halo exchange: `MPI_Cart_create` and neighbor collectives (`MPI_Neighbor_alltoall`)",
+            "Your own communicators: `MPI_Comm_split`, and `MPI_Comm_split_type` for processes sharing a node",
             "Derived datatypes, for sending non-contiguous data",
             "Parallel I/O: MPI-IO, or parallel HDF5",
-            "Hybrid MPI + X: MPI_Init_thread with OpenMP threads, and GPU-aware MPI",
+            "Hybrid MPI + X: `MPI_Init_thread` with OpenMP threads, and GPU-aware MPI",
             "Newer standards: MPI-4 (large counts, persistent collectives, sessions) and MPI-5 (a standard ABI)",
         ],
         size=32,
