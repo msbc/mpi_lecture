@@ -121,7 +121,8 @@ SLIDES = [
             "highly portable",
             "In practice: a library of C functions and Fortran subroutines for exchanging data between processes "
             "(C++ uses the C functions)",
-            "Bindings for Python (mpi4py), Julia (MPI.jl), Rust (rsmpi), R (pbdMPI)…: if it can call C, it can run MPI",
+            "The MPI standard defines only C and Fortran interfaces; Python (mpi4py), Julia (MPI.jl), Rust (rsmpi), "
+            "R (pbdMPI)… wrap the C library",
         ],
         size=36,
     ),
