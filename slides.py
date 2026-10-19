@@ -282,6 +282,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Serial π in C",
+        source="C/cpi_1.c",
         sub="`cpi_1.c`",
         left="int main(int argc, char* argv[]) {\n"
         "  int nslices = parse_nslices(argc, argv);\n"
@@ -302,7 +303,7 @@ SLIDES = [
         "\n"
         "  double pi = dx * sum;\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f\\n", pi,\n'
+        '         "with error %g\\n", pi,\n'
         "         fabs(pi - PI25DT));\n"
         "\n"
         "  return 0;\n"
@@ -315,6 +316,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Serial π in Fortran",
+        source="Fortran/fpi_1.f90",
         lang="fortran",
         sub="`fpi_1.f90`",
         left="program piapprox\n"
@@ -496,6 +498,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #2 solution in C",
+        source="C/solutions/cpi_2.c",
         sub="`solutions/cpi_2.c`",
         left="int main(int argc, char* argv[]) {\n"
         "  int nproc;\n"
@@ -537,6 +540,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #2 solution in Fortran",
+        source="Fortran/solutions/fpi_2.f90",
         lang="fortran",
         sub="`solutions/fpi_2.f90`",
         left="program piapprox\n"
@@ -601,6 +605,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #3 solution in C",
+        source="C/solutions/cpi_3.c",
         sub="`solutions/cpi_3.c`",
         left="int main(int argc, char* argv[]) {\n"
         "  int nproc;\n"
@@ -643,6 +648,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #3 solution in Fortran",
+        source="Fortran/solutions/fpi_3.f90",
         lang="fortran",
         sub="`solutions/fpi_3.f90`",
         left="program piapprox\n"
@@ -916,6 +922,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #4 solution in C",
+        source="C/solutions/cpi_4a.c",
         sub="`solutions/cpi_4a.c`; `cpi_4b.c` calls `MPI_Allreduce` instead",
         left="int main(int argc, char* argv[]) {\n"
         "  int nproc;\n"
@@ -961,6 +968,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #4 solution in Fortran",
+        source="Fortran/solutions/fpi_4a.f90",
         lang="fortran",
         sub="`solutions/fpi_4a.f90`; `fpi_4b.f90` calls `MPI_ALLREDUCE` instead",
         left="program piapprox\n"
@@ -1029,6 +1037,8 @@ SLIDES = [
     dict(
         kind="code",
         title="One possible solution",
+        source="C/solutions/cpi_5.c",
+        excerpt=True,
         sub="The root reads the command line, then broadcasts `nslices`",
         code="if (myrank == 0) {\n"
         "  nslices = parse_nslices(argc, argv);\n"
@@ -1049,6 +1059,8 @@ SLIDES = [
     dict(
         kind="code",
         title="One possible solution",
+        source="C/solutions/cpi_5.c",
+        excerpt=True,
         sub="Each process sums its own slices; `MPI_Allreduce` adds them up",
         code="for (int i = ((myrank * nslices) / nproc) + 1;\n"
         "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
@@ -1067,6 +1079,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #5 solution in C",
+        source="C/solutions/cpi_5.c",
         sub="`solutions/cpi_5.c`",
         left="int main(int argc, char* argv[]) {\n"
         "  int nproc;\n"
@@ -1122,6 +1135,7 @@ SLIDES = [
     dict(
         kind="twocode",
         title="Exercise #5 solution in Fortran",
+        source="Fortran/solutions/fpi_5.f90",
         lang="fortran",
         sub="`solutions/fpi_5.f90`",
         left="program piapprox\n"

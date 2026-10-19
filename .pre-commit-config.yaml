@@ -55,3 +55,13 @@ repos:
         files: ^Intro_MPI/.*\.(c|f90)$
         pass_filenames: false
         entry: python3 ci/sync_shared.py --check
+
+  # Slides: code listed on a slide must match the exercise file it comes from
+  - repo: local
+    hooks:
+      - id: check-slides
+        name: slide code matches the exercises
+        language: system
+        files: ^(slides\.py|Intro_MPI/.*\.(c|f90))$
+        pass_filenames: false
+        entry: python3 ci/check_slides.py

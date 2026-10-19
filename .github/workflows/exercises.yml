@@ -1,5 +1,6 @@
 # Build every MPI exercise with each compiler family's flags (Intro_MPI/mk),
 # run it on 4 processes, and check it prints the expected value(s) of pi.
+# Also check that the code on the slides matches the exercises.
 name: Exercises
 
 on:
@@ -8,6 +9,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  # The code listed on the slides must match the exercise files. A separate
+  # job, so a stale slide doesn't stop the exercises being built and run.
+  slides:
+    name: slides
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the code on the slides matches the exercises
+        run: python3 ci/check_slides.py
+
   build-and-run:
     name: ${{ matrix.compiler }}
     runs-on: ubuntu-24.04

@@ -15,6 +15,7 @@ The repository has two parts: a Keynote deck generated from a Python slide spec,
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
 | `ci/check_exercises.py` | Builds and runs every exercise and checks the printed value of π |
 | `ci/sync_shared.py` | Copies the code in `Intro_MPI/shared/` into every exercise |
+| `ci/check_slides.py` | Checks that the code on the slides matches the exercise files |
 | `.github/workflows/exercises.yml` | Runs that check on GitHub Actions with GCC, Clang and Intel compilers |
 
 ## Building the slides
@@ -67,8 +68,8 @@ The clang-tidy hooks use `bear` to generate `Intro_MPI/C/compile_commands.json`.
 
 ### Shared code in the exercises
 
-Every exercise is a self-contained file, but some code (reading the number of slices from the command line) is the same in all of them.
-That code lives once in `Intro_MPI/shared/`, as `parse_nslices.c` and `parse_nslices.f90`, and is copied between `BEGIN shared` and `END shared` comments in each program.
+Every exercise is a self-contained file, but some code (the exact value of π, and reading the number of slices from the command line) is the same in all of them.
+That code lives once in `Intro_MPI/shared/` (for example `parse_nslices.c` and `parse_nslices.f90`), and is copied between `BEGIN shared` and `END shared` comments in each program.
 Edit the file in `Intro_MPI/shared/`, never a copy, then run:
 
 ```
@@ -76,3 +77,27 @@ python3 ci/sync_shared.py
 ```
 
 A pre-commit hook and the GitHub workflow run `python3 ci/sync_shared.py --check`, which fails if any copy is out of date.
+
+### Code on the slides
+
+A slide that lists an exercise's code names the file in `slides.py`, e.g. `source="C/solutions/cpi_2.c"` (relative to `Intro_MPI/`).
+The slide shows that program's main code: everything from `int main(` on in C, or everything but the `contains` section in Fortran.
+Add `excerpt=True` for a slide that shows only part of it.
+Check them with:
+
+```
+python3 ci/check_slides.py
+```
+
+The comparison ignores comments, line wrapping and the order of names in a Fortran `use ..., only:` line, so slides can trim and rewrap code for display.
+A pre-commit hook and the GitHub workflow (in its own `slides` job) run it too.
+A failure gives the line in `slides.py` and the line in the exercise where they first differ:
+
+```
+FAIL  slide 33 (Exercise #2 solution in C) doesn't match Intro_MPI/C/solutions/cpi_2.c
+  slides.py:519:  printf("Number of intervals = %d.\n",
+  Intro_MPI/C/solutions/cpi_2.c:63:  printf("Number of slices = %d.\n", nslices);
+```
+
+Fix whichever side is wrong (usually the listing in `slides.py`), then rebuild the deck.
+On GitHub the same errors also appear on those lines of a pull request's diff.
