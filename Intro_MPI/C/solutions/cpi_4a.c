@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
     MPI_Finalize();
     return nslices == 0 ? 0 : 1;
   }
+  printf("Rank %d of %d.\n", myrank, nproc);
   printf("Number of intervals = %d.\n", nslices);
 
   double dx = 1.0 / (double)nslices;
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
    * adds them up using MPI_SUM */
   MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  printf("Pi is approximately %.16f, with error %.16f\n", pi, fabs(pi - PI25DT));
+  printf("Pi is approximately %.16f, with error %g\n", pi, fabs(pi - PI25DT));
 
   MPI_Finalize();
   return 0;

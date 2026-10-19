@@ -21,6 +21,7 @@ program piapprox
     if (nslices < 0) stop 1
     stop
   end if
+  write(*, *) "  Rank ", myrank, " of ", nproc
   write(*, *) "  Number of intervals = ", nslices
 
   dx = 1.0_dp / nslices

@@ -470,7 +470,8 @@ SLIDES = [
         kind="split",
         title="Hands-on exercise #2",
         bullets=[
-            "Add MPI initialization, size, rank and termination calls to `cpi_1.c` or `fpi_1.f90`",
+            "Add MPI initialization, size, rank and termination calls to `cpi_1.c` or `fpi_1.f90`; "
+            "print `myrank` and `nproc`",
             "Build, then run in parallel again: `sbatch slurm_script`",
             "Look at the new `output.log`: any difference from the previous parallel run?",
             "Stuck? The answers are in `solutions/cpi_2.c` and `solutions/fpi_2.f90`",
@@ -481,6 +482,7 @@ SLIDES = [
             "MPI_Init(&argc, &argv);\n"
             "MPI_Comm_size(MPI_COMM_WORLD, &nproc);\n"
             "MPI_Comm_rank(MPI_COMM_WORLD, &myrank);\n"
+            'printf("Rank %d of %d.\\n", myrank, nproc);\n'
             "MPI_Finalize();",
             (
                 "use mpi_f08\n"
@@ -488,6 +490,7 @@ SLIDES = [
                 "call MPI_INIT()\n"
                 "call MPI_COMM_SIZE(MPI_COMM_WORLD, nproc)\n"
                 "call MPI_COMM_RANK(MPI_COMM_WORLD, myrank)\n"
+                'write(*, *) "  Rank ", myrank, " of ", nproc\n'
                 "call MPI_FINALIZE()",
                 "fortran",
             ),
@@ -516,9 +519,11 @@ SLIDES = [
         "    MPI_Finalize();\n"
         "    return nslices == 0 ? 0 : 1;\n"
         "  }\n"
-        '  printf("Number of intervals = %d.\\n",\n'
-        "         nslices);",
-        right="  double dx = 1.0 / (double)nslices;\n"
+        '  printf("Rank %d of %d.\\n", myrank, nproc);',
+        right='  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);\n"
+        "\n"
+        "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
         "  for (int i = 1; i <= nslices; i++) {\n"
@@ -528,7 +533,7 @@ SLIDES = [
         "\n"
         "  double pi = dx * sum;\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f\\n", pi,\n'
+        '         "with error %g\\n", pi,\n'
         "         fabs(pi - PI25DT));\n"
         "\n"
         "  MPI_Finalize();\n"
@@ -563,9 +568,11 @@ SLIDES = [
         "    call MPI_FINALIZE(ierr)\n"
         "    if (nslices < 0) stop 1\n"
         "    stop\n"
-        "  end if\n"
-        '  write(*, *) "  Number of intervals = ", nslices',
-        right="  dx = 1.0_dp / nslices\n"
+        "  end if",
+        right='  write(*, *) "  Rank ", myrank, " of ", nproc\n'
+        '  write(*, *) "  Number of intervals = ", nslices\n'
+        "\n"
+        "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
         "  do i = 1, nslices\n"
         "    x = dx * (real(i, dp) - 0.5_dp)\n"
@@ -623,9 +630,11 @@ SLIDES = [
         "    MPI_Finalize();\n"
         "    return nslices == 0 ? 0 : 1;\n"
         "  }\n"
-        '  printf("Number of intervals = %d.\\n",\n'
-        "         nslices);",
-        right="  double dx = 1.0 / (double)nslices;\n"
+        '  printf("Rank %d of %d.\\n", myrank, nproc);',
+        right='  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);\n"
+        "\n"
+        "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
         "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
@@ -636,7 +645,7 @@ SLIDES = [
         "\n"
         "  double pi = dx * sum;\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f\\n", pi,\n'
+        '         "with error %g\\n", pi,\n'
         "         fabs(pi - PI25DT));\n"
         "\n"
         "  MPI_Finalize();\n"
@@ -671,9 +680,11 @@ SLIDES = [
         "    call MPI_FINALIZE(ierr)\n"
         "    if (nslices < 0) stop 1\n"
         "    stop\n"
-        "  end if\n"
-        '  write(*, *) "  Number of intervals = ", nslices',
-        right="  dx = 1.0_dp / nslices\n"
+        "  end if",
+        right='  write(*, *) "  Rank ", myrank, " of ", nproc\n'
+        '  write(*, *) "  Number of intervals = ", nslices\n'
+        "\n"
+        "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
         "  do i = (myrank * nslices) / nproc + 1, &\n"
         "         ((myrank + 1) * nslices) / nproc\n"
@@ -940,9 +951,11 @@ SLIDES = [
         "    MPI_Finalize();\n"
         "    return nslices == 0 ? 0 : 1;\n"
         "  }\n"
-        '  printf("Number of intervals = %d.\\n",\n'
-        "         nslices);",
-        right="  double dx = 1.0 / (double)nslices;\n"
+        '  printf("Rank %d of %d.\\n", myrank, nproc);',
+        right='  printf("Number of intervals = %d.\\n",\n'
+        "         nslices);\n"
+        "\n"
+        "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
         "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
@@ -956,7 +969,7 @@ SLIDES = [
         "  MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,\n"
         "             MPI_COMM_WORLD);\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f\\n", pi,\n'
+        '         "with error %g\\n", pi,\n'
         "         fabs(pi - PI25DT));\n"
         "\n"
         "  MPI_Finalize();\n"
@@ -992,9 +1005,11 @@ SLIDES = [
         "    call MPI_FINALIZE(ierr)\n"
         "    if (nslices < 0) stop 1\n"
         "    stop\n"
-        "  end if\n"
-        '  write(*, *) "  Number of intervals = ", nslices',
-        right="  dx = 1.0_dp / nslices\n"
+        "  end if",
+        right='  write(*, *) "  Rank ", myrank, " of ", nproc\n'
+        '  write(*, *) "  Number of intervals = ", nslices\n'
+        "\n"
+        "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
         "  do i = (myrank * nslices) / nproc + 1, &\n"
         "         ((myrank + 1) * nslices) / nproc\n"
@@ -1106,7 +1121,8 @@ SLIDES = [
         "    MPI_Finalize();\n"
         "    return 0;\n"
         "  }",
-        right='  printf("Number of intervals = %d.\\n",\n'
+        right='  printf("Rank %d of %d.\\n", myrank, nproc);\n'
+        '  printf("Number of intervals = %d.\\n",\n'
         "         nslices);\n"
         "\n"
         "  double dx = 1.0 / (double)nslices;\n"
@@ -1123,7 +1139,7 @@ SLIDES = [
         "  MPI_Allreduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM,\n"
         "                MPI_COMM_WORLD);\n"
         '  printf("Pi is approximately %.16f, "\n'
-        '         "with error %.16f\\n", pi,\n'
+        '         "with error %g\\n", pi,\n'
         "         fabs(pi - PI25DT));\n"
         "\n"
         "  MPI_Finalize();\n"
@@ -1167,6 +1183,7 @@ SLIDES = [
         "    call MPI_FINALIZE(ierr)\n"
         "    stop\n"
         "  end if\n"
+        '  write(*, *) "  Rank ", myrank, " of ", nproc\n'
         '  write(*, *) "  Number of intervals = ", nslices\n'
         "\n"
         "  dx = 1.0_dp / nslices\n"
