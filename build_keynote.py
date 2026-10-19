@@ -2,9 +2,10 @@
 """Build Intro_MPI.key (Keynote, "Dynamic Waves Light", 1920x1080) from the slide
 spec in slides.py. Generates an AppleScript and runs it with osascript.
 
-Usage:  python3 build_keynote.py [--output PATH] [--overwrite] [--export-png DIR]
+Usage:  python3 build_keynote.py [--output PATH] [--overwrite] [--export-png DIR] [--print-script]
 
 Refuses to run if the output file already exists unless --overwrite is given.
+--print-script writes the AppleScript to stdout instead of running it.
 """
 
 import argparse
@@ -470,9 +471,12 @@ def main():
     )
     ap.add_argument("--export-png", metavar="DIR", help="also export each slide as a PNG into DIR")
     ap.add_argument("--output", default=OUT, help="where to save the deck (default: Intro_MPI.key)")
+    ap.add_argument(
+        "--print-script", action="store_true", help="print the AppleScript to stdout instead of running osascript"
+    )
     args = ap.parse_args()
     out_path = os.path.abspath(args.output)
-    if os.path.exists(out_path) and not args.overwrite:
+    if os.path.exists(out_path) and not args.overwrite and not args.print_script:
         ap.error(f"{out_path} already exists (Keynote edits would be lost); pass --overwrite to replace it")
     out = [
         "set LS to character id 8232",
@@ -483,12 +487,16 @@ def main():
         build(sp, out)
     out += ["delete slide 1 of d", f'save d in POSIX file "{out_path}"']
     if args.export_png:
-        dest = args.export_png
-        os.makedirs(dest, exist_ok=True)
+        dest = os.path.abspath(args.export_png)
+        if not args.print_script:
+            os.makedirs(dest, exist_ok=True)
         out.append(f'export d to POSIX file "{dest}" as slide images with properties {{image format:PNG}}')
     # close the saved deck so builds don't pile up open windows in Keynote
     out += ["set n to count of slides of d", "close d saving no", "return n", "end tell"]
     script = "\n".join(out)
+    if args.print_script:
+        print(script)
+        return
     path = os.path.join(CARDS, "build.applescript")
     os.makedirs(CARDS, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:

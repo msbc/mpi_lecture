@@ -32,6 +32,8 @@ uv run build_keynote.py --output /tmp/Intro_MPI.key
 - It refuses to overwrite an existing file unless you pass `--overwrite`.
   Without `--output` it writes `Intro_MPI.key` in this directory.
 - `--export-png DIR` also exports each slide as an image.
+- `--print-script` prints the generated AppleScript instead of running it, for debugging a build.
+  Nothing is saved, so it skips the overwrite check; it still renders any missing cards and equations under `figures/`.
 
 `Intro_MPI.key` is generated and not tracked by git; change `slides.py`, not the deck.
 
