@@ -597,7 +597,7 @@ SLIDES = [
         title="Hands-on exercise #3",
         bullets=[
             "Use `myrank` and `nproc` to divide the integral evenly across all processes",
-            "Hint: change the bounds of the `for` / `do` loop (beware off-by-one errors!)",
+            "Hint: change the start and step of the `for` / `do` loop (beware off-by-one errors!)",
             "Build, run with `sbatch slurm_script`, and look at `output.log`. What do you see?",
             "Stuck? The answers are in `solutions/cpi_3.c` and `solutions/fpi_3.f90`",
         ],
@@ -641,8 +641,7 @@ SLIDES = [
         "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
-        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
-        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "  for (int i = 1 + myrank; i <= nslices; i += nproc) {\n"
         "    x = dx * ((double)i - 0.5);\n"
         "    sum += (4.0 / (1.0 + (x * x)));\n"
         "  }\n"
@@ -690,8 +689,7 @@ SLIDES = [
         "\n"
         "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
-        "  do i = (myrank * nslices) / nproc + 1, &\n"
-        "         ((myrank + 1) * nslices) / nproc\n"
+        "  do i = 1 + myrank, nslices, nproc\n"
         "    x = dx * (real(i, dp) - 0.5_dp)\n"
         "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
         "  end do\n"
@@ -706,10 +704,28 @@ SLIDES = [
         "Comments are left out, the use line is reordered, and long lines are continued with & for display.",
     ),
     dict(
-        kind="figure",
+        kind="codefig",
         title="What's the problem?",
+        sub="Output of `solutions/cpi_3.c` on 4 processes",
+        lang=None,
+        code="Rank 1 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 2 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 3 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 0 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Pi is approximately 0.7853981883974535, with error 2.35619\n"
+        "Pi is approximately 0.7853981383974126, with error 2.35619\n"
+        "Pi is approximately 0.7853982383974335, with error 2.35619\n"
+        "Pi is approximately 0.7853980883973867, with error 2.35619",
+        # the digits where the ranks' partial sums differ
+        marks=[r"0\.785398(\d+)"],
         image="surprised-pikachu.png",
-        caption="Each process computed only its own slice",
+        caption="Each process computed only its own share of the slices",
+        notes="Each rank sums every 4th slice, so each gets about π/4, and the four values differ only "
+        "in the last digits. The lines come out in whatever order the ranks print them.",
     ),
     # --------------------------------------------------------- communication
     dict(kind="section", title="Communication"),
@@ -962,8 +978,7 @@ SLIDES = [
         "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
-        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
-        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "  for (int i = 1 + myrank; i <= nslices; i += nproc) {\n"
         "    x = dx * ((double)i - 0.5);\n"
         "    sum += (4.0 / (1.0 + (x * x)));\n"
         "  }\n"
@@ -1015,8 +1030,7 @@ SLIDES = [
         "\n"
         "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
-        "  do i = (myrank * nslices) / nproc + 1, &\n"
-        "         ((myrank + 1) * nslices) / nproc\n"
+        "  do i = 1 + myrank, nslices, nproc\n"
         "    x = dx * (real(i, dp) - 0.5_dp)\n"
         "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
         "  end do\n"
@@ -1081,8 +1095,7 @@ SLIDES = [
         source="C/solutions/cpi_5.c",
         excerpt=True,
         sub="Each process sums its own slices; `MPI_Allreduce` adds them up",
-        code="for (int i = ((myrank * nslices) / nproc) + 1;\n"
-        "     i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        code="for (int i = 1 + myrank; i <= nslices; i += nproc) {\n"
         "  x = dx * ((double)i - 0.5);\n"
         "  sum += (4.0 / (1.0 + (x * x)));\n"
         "}\n"
@@ -1092,8 +1105,8 @@ SLIDES = [
         "MPI_Allreduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM,\n"
         "              MPI_COMM_WORLD);",
         code_size=34,
-        notes="For very large runs, myrank * nslices overflows an int (past about 2 billion); "
-        "use long long for the loop bounds there.",
+        notes="Each rank takes every nproc-th slice, starting from slice myrank + 1, so the ranks interleave "
+        "instead of each taking one contiguous block.",
     ),
     dict(
         kind="twocode",
@@ -1132,8 +1145,7 @@ SLIDES = [
         "  double dx = 1.0 / (double)nslices;\n"
         "  double sum = 0.0;\n"
         "  double x;\n"
-        "  for (int i = ((myrank * nslices) / nproc) + 1;\n"
-        "       i <= ((myrank + 1) * nslices) / nproc; i++) {\n"
+        "  for (int i = 1 + myrank; i <= nslices; i += nproc) {\n"
         "    x = dx * ((double)i - 0.5);\n"
         "    sum += (4.0 / (1.0 + (x * x)));\n"
         "  }\n"
@@ -1192,8 +1204,7 @@ SLIDES = [
         "\n"
         "  dx = 1.0_dp / nslices\n"
         "  sum = 0.0_dp\n"
-        "  do i = (myrank * nslices) / nproc + 1, &\n"
-        "         ((myrank + 1) * nslices) / nproc\n"
+        "  do i = 1 + myrank, nslices, nproc\n"
         "    x = dx * (real(i, dp) - 0.5_dp)\n"
         "    sum = sum + 4.0_dp / (1.0_dp + x * x)\n"
         "  end do\n"

@@ -80,8 +80,7 @@ int main(int argc, char* argv[]) {
   double x;
 
   /* Split the loop between all the MPI tasks */
-  for (int i = ((myrank * nslices) / nproc) + 1; i <= ((myrank + 1) * nslices) / nproc;
-       i++) {
+  for (int i = 1 + myrank; i <= nslices; i += nproc) {
     x = dx * ((double)i - 0.5);
     sum += (4.0 / (1.0 + (x * x)));
   }

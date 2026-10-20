@@ -37,7 +37,7 @@ program piapprox
   dx = 1.0_dp / nslices
   sum = 0.0_dp
   ! Split the loop between the MPI tasks
-  do i = (myrank * nslices) / nproc + 1, ((myrank + 1) * nslices) / nproc
+  do i = 1 + myrank, nslices, nproc
     x = dx * (real(i, dp) - 0.5_dp)
     sum = sum + 4.0_dp / (1.0_dp + x * x)
   end do

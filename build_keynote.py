@@ -45,6 +45,7 @@ COMMENT = rgb("#7D858F")
 CAPTION = rgb("#6A7079")
 
 MONO = "Menlo-Regular"
+MONO_BOLD = "Menlo-Bold"
 SANS = "Graphik-Light"
 HEAD = "Produkt-Light"
 LINE = 1.167  # Menlo line height / font size in Keynote text items
@@ -302,8 +303,9 @@ def highlight(code, lang="c"):
     return spans
 
 
-def add_code(sl, code, x, y, w, hmax=None, size=None, lang="c"):
-    """Code on a rounded card at (x, y), width w. Returns card height."""
+def add_code(sl, code, x, y, w, hmax=None, size=None, lang="c", marks=()):
+    """Code on a rounded card at (x, y), width w. Each regex in `marks` sets its matches (group 1
+    if it has one) in bold ACCENT on top of the syntax colors. Returns card height."""
     hmax = hmax or (YMAX - y)
     size = size or code_size(code, w, hmax)
     ch = code_height(code, size)
@@ -311,6 +313,13 @@ def add_code(sl, code, x, y, w, hmax=None, size=None, lang="c"):
     sl.text(code.replace("\n", " "), x + PAD, y + PAD, w - 2 * PAD, size=size, font=MONO, color=CODE)
     for a, b, col in highlight(code, lang):
         sl.cmd(f"set color of characters {a} thru {b} of object text of ti to {{{col[0]}, {col[1]}, {col[2]}}}")
+    for pattern in marks:
+        for m in re.finditer(pattern, code):
+            g = 1 if m.re.groups else 0
+            a, b = m.start(g) + 1, m.end(g)
+            sl.cmd(f'set font of characters {a} thru {b} of object text of ti to "{MONO_BOLD}"')
+            col = ACCENT
+            sl.cmd(f"set color of characters {a} thru {b} of object text of ti to {{{col[0]}, {col[1]}, {col[2]}}}")
     return ch
 
 
@@ -406,6 +415,16 @@ def build(spec, out):
             y += 50
         if spec.get("after"):
             sl.text(spec["after"], X0, y + 10, CW, size=34)
+    elif k == "codefig":  # code (or program output, with lang=None) left, figure right
+        sl = Slide(out, "Title Only")
+        sl.title(spec["title"], spec.get("sub"))
+        cw = spec.get("code_w", 1000)
+        lg = spec["lang"] if "lang" in spec else lang
+        add_code(sl, spec["code"], X0, Y0, cw, size=spec.get("code_size"), lang=lg, marks=spec.get("marks", ()))
+        fx, fw = X0 + cw + 50, CW - cw - 50
+        cx, cy, cw_, chh = add_figure(sl, spec["image"], fx, Y0, fw, YMAX - Y0 - (60 if spec.get("caption") else 0))
+        if spec.get("caption"):
+            sl.text(spec["caption"], cx, cy + chh + 12, cw_, size=26, color=CAPTION)
     elif k == "figbullets":  # figure left, bullets right
         sl = Slide(out, "Title & Bullets")
         sl.title(spec["title"], spec.get("sub"))
