@@ -3,14 +3,16 @@
 Materials for the "Introduction to MPI" lecture at the Fall Break Parallel Programming Bootcamp 2026
 (Research Computing, Princeton University). Adapted from slides by Jonathan Gorard (PPPL).
 
-The repository has two parts: a Keynote deck generated from a Python slide spec, and hands-on exercises in C and Fortran.
+The repository has two parts: a slide deck generated from a Python slide spec (as Keynote or as a Beamer PDF),
+and hands-on exercises in C and Fortran.
 
 ## Contents
 
 | Path | What it is |
 | --- | --- |
 | `slides.py` | Slide content and presenter notes: the source of truth for the deck |
-| `build_keynote.py` | Builds `Intro_MPI.key` from `slides.py` (macOS and Keynote only) |
+| `build_slidedeck.py` | Builds `Intro_MPI.key` (Keynote) or `Intro_MPI.pdf` (Beamer) from `slides.py` |
+| `slidedeck/` | The build engines: shared layouts in `engine.py`, output in `keynote.py` and `beamer.py` |
 | `figures/` | Images used by the slides |
 | `figures/src/` | Matplotlib scripts that draw some of those images |
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
@@ -21,23 +23,32 @@ The repository has two parts: a Keynote deck generated from a Python slide spec,
 
 ## Building the slides
 
-Edit `slides.py`, then build the deck:
+Edit `slides.py`, then build the deck as Keynote, or as a PDF with Beamer:
 
 ```
-uv run build_keynote.py --output /tmp/Intro_MPI.key
+uv run build_slidedeck.py --output /tmp/Intro_MPI.key
+uv run build_slidedeck.py --engine beamer --output /tmp/Intro_MPI.pdf
 ```
 
-- The script drives Keynote through AppleScript, so it needs macOS with Keynote installed.
+- Both engines lay out the slides the same way: `slidedeck/engine.py` places everything on a 1920x1080 canvas,
+  and each engine draws it in its own format.
+- The Keynote engine (the default) drives Keynote through AppleScript, so it needs macOS with Keynote installed.
+- The Beamer engine compiles with `lualatex` (TeX Live). It uses the Keynote theme's fonts (Graphik, Produkt), which
+  macOS downloads the first time Keynote needs them, plus Menlo and Helvetica Neue; without Graphik and Produkt it
+  falls back to Helvetica Neue. The slides have a plain white background instead of the theme's waves, and the
+  presenter notes are in the PDF as `\note`s (hidden unless you turn on Beamer's `show notes`).
+- Equations are typeset with `lualatex` for both engines.
 - Code blocks are syntax-highlighted with [Pygments](https://pygments.org) (installed by `uv run` from `pyproject.toml`).
   Set `lang="bash"`, `"make"` or `"fortran"` on a slide in `slides.py`; the default is C.
-- It uses the "Dynamic Waves Light" theme at 16:9.
-- It refuses to overwrite an existing file unless you pass `--overwrite`.
-  Without `--output` it writes `Intro_MPI.key` in this directory.
-- `--export-png DIR` also exports each slide as an image.
-- `--print-script` prints the generated AppleScript instead of running it, for debugging a build.
+- The Keynote deck uses the "Dynamic Waves Light" theme at 16:9.
+- The Keynote engine refuses to overwrite an existing file unless you pass `--overwrite`, since the deck may
+  have been edited by hand; the Beamer engine always replaces its PDF.
+  Without `--output` they write `Intro_MPI.key` or `Intro_MPI.pdf` in this directory.
+- `--export-png DIR` also exports each slide as an image (Keynote only).
+- `--print-script` prints the generated AppleScript or LaTeX instead of running it, for debugging a build.
   Nothing is saved, so it skips the overwrite check; it still renders any missing cards and equations under `figures/`.
 
-`Intro_MPI.key` is generated and not tracked by git; change `slides.py`, not the deck.
+`Intro_MPI.key` and `Intro_MPI.pdf` are generated and not tracked by git; change `slides.py`, not the deck.
 
 ### Figures
 

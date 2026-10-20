@@ -1,5 +1,7 @@
-# Generated deck (built from slides.py by build_keynote.py)
+# Generated decks (built from slides.py by build_slidedeck.py)
 Intro_MPI.key
+Intro_MPI.pdf
+Intro_MPI.log
 Intro_MPI.backup-*.key
 figures/_cards/
 figures/_eq/

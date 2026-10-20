@@ -1,4 +1,4 @@
-"""Slide content for Intro_MPI.key — edit here, then run build_keynote.py.
+"""Slide content for the deck (Intro_MPI.key or Intro_MPI.pdf) — edit here, then run build_slidedeck.py.
 
 Adapted from "Introduction to MPI" (Fall Break Parallel Programming Bootcamp 2025)
 by Jonathan Gorard. Presenter notes keep the fuller wording of the original slides.

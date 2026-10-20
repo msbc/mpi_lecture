@@ -1,7 +1,7 @@
 [project]
 name = "intro-mpi"
 version = "0.1.0"
-description = "Introduction to MPI lecture: Keynote deck builder and exercises"
+description = "Introduction to MPI lecture: slide deck builder (Keynote, Beamer) and exercises"
 requires-python = ">=3.10"
 dependencies = ["pygments>=2.14"]
 
