@@ -12,6 +12,7 @@ SLIDES = [
         sub="Fall Break Parallel Programming Bootcamp 2026",
         footer="Matt Coleman, Ph.D.  ·  Research Computing  ·  Princeton University",
         credit="adapted from slides by Jonathan Gorard (PPPL)",
+        repo=True,  # the repository's URL at the lower right
     ),
     dict(kind="section", title="Why MPI?"),
     dict(
@@ -1304,5 +1305,5 @@ SLIDES = [
         ],
         size=32,
     ),
-    dict(kind="statement", title="Questions?"),
+    dict(kind="statement", title="Questions?", repo=True),
 ]

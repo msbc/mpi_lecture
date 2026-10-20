@@ -41,6 +41,8 @@ uv run build_slidedeck.py --engine beamer --output /tmp/Intro_MPI.pdf
 - Code blocks are syntax-highlighted with [Pygments](https://pygments.org) (installed by `uv run` from `pyproject.toml`).
   Set `lang="bash"`, `"make"` or `"fortran"` on a slide in `slides.py`; the default is C.
 - The Keynote deck uses the "Dynamic Waves Light" theme at 16:9.
+- A slide with `repo=True` shows the repository's URL at the lower right (the title slide and the last slide do).
+  It comes from `git remote get-url origin`, so it follows the remote if the repository moves.
 - The Keynote engine refuses to overwrite an existing file unless you pass `--overwrite`, since the deck may
   have been edited by hand; the Beamer engine always replaces its PDF.
   Without `--output` they write `Intro_MPI.key` or `Intro_MPI.pdf` in this directory.

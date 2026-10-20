@@ -37,7 +37,7 @@ from .style import (
     YMAX,
 )
 
-HEAD_LIGHT = "head-light"  # an extra font role: Produkt-Light, for the title slide's footer
+HEAD_TITLE = "head-title"  # an extra font role: Produkt-Extralight, for the masters' titles
 
 SANS_LINE = 1.33  # line height / font size for the theme's sans text
 PARA_SKIP = 1.45  # extra space between paragraphs of a Keynote text item, in em
@@ -49,13 +49,13 @@ BODY_SIZE = 40  # the "Title & Bullets" master's body size
 # Text boxes of the Keynote masters, measured with osascript
 # shrink: one line, scaled down to fit the width (Keynote's "shrink text to fit"); otherwise lines wrap
 Box = namedtuple("Box", "x y w h font size valign halign shrink", defaults=("left", False))
-TITLE = Box(95, 50, 1730, 123, HEAD, 100, "bottom", shrink=True)  # "Title & Bullets" and "Title Only"
-SUBTITLE = Box(95, 175, 1730, 79, HEAD, 55, "top", shrink=True)
-SECTION_TITLE = Box(95, 308, 1730, 366, HEAD, 120, "middle")
-STATEMENT = Box(95, 330, 1730, 322, HEAD, 120, "middle", "center")
-COVER_TITLE = Box(95, 206, 1730, 338, HEAD, 120, "bottom")  # the "Title" master
-COVER_SUB = Box(95, 579, 1730, 158, HEAD, 55, "top", shrink=True)
-COVER_FOOTER = Box(95, 966, 1730, 52, HEAD_LIGHT, 33, "top", shrink=True)
+TITLE = Box(95, 50, 1730, 123, HEAD_TITLE, 100, "bottom", shrink=True)  # "Title & Bullets" and "Title Only"
+SUBTITLE = Box(95, 175, 1730, 79, HEAD_TITLE, 55, "top", shrink=True)
+SECTION_TITLE = Box(95, 308, 1730, 366, HEAD_TITLE, 120, "middle")
+STATEMENT = Box(95, 330, 1730, 322, HEAD_TITLE, 120, "middle", "center")
+COVER_TITLE = Box(95, 206, 1730, 338, HEAD_TITLE, 120, "bottom")  # the "Title" master
+COVER_SUB = Box(95, 579, 1730, 158, HEAD_TITLE, 55, "top", shrink=True)
+COVER_FOOTER = Box(95, 966, 1730, 52, HEAD, 33, "top", shrink=True)
 
 # The theme's fonts ship with macOS as downloadable assets; Keynote downloads them on first use
 ASSETS = "/System/Library/AssetsV2/com_apple_MobileAsset_Font*/*/AssetData"
@@ -64,13 +64,13 @@ SYSTEM_FONTS = "/System/Library/Fonts"
 FACES = {
     SANS: ("Graphik.ttc", 6),  # Graphik-Light
     SANS_REGULAR: ("Graphik.ttc", 0),  # Graphik-Regular
-    HEAD: ("Produkt.ttc", 6),  # Produkt-Extralight
-    HEAD_LIGHT: ("Produkt.ttc", 4),  # Produkt-Light
+    HEAD: ("Produkt.ttc", 4),  # Produkt-Light
+    HEAD_TITLE: ("Produkt.ttc", 6),  # Produkt-Extralight
 }
-STAND_IN = {SANS: 7, SANS_REGULAR: 0, HEAD: 12, HEAD_LIGHT: 7}  # HelveticaNeue Light, Regular, Thin, Light
+STAND_IN = {SANS: 7, SANS_REGULAR: 0, HEAD: 7, HEAD_TITLE: 12}  # HelveticaNeue Light, Regular, Light, Thin
 # Glyphs missing from Graphik and Produkt (π, Δ, ∫, subscripts) come from Helvetica Neue, in a matching weight
 # where it has them: font role -> faces of HelveticaNeue.ttc to try in turn
-FALLBACKS = {SANS: (7, 0), SANS_REGULAR: (0,), HEAD: (12, 0), HEAD_LIGHT: (7, 0), MONO: (0,)}
+FALLBACKS = {SANS: (7, 0), SANS_REGULAR: (0,), HEAD: (7, 0), HEAD_TITLE: (12, 0), MONO: (0,)}
 COLORS = {
     "text": TEXT,
     "code": CODE,
@@ -234,6 +234,7 @@ class BeamerEngine(BuildEngine):
                 # stretch the words at slide sizes; reset them to the font's own spaces and a ragged margin
                 r"\newcommand{\slidespaces}{\spaceskip=0pt\relax\xspaceskip=0pt\relax}",
                 r"\newcommand{\slideleft}{\raggedright\rightskip=0pt plus 1fil\relax\slidespaces}",
+                r"\newcommand{\slideright}{\raggedleft\leftskip=0pt plus 1fil\relax\parfillskip=0pt\relax\slidespaces}",
                 r"\newcommand{\slidecenter}{\centering\leftskip=0pt plus 1fil\relax\rightskip=0pt plus 1fil\relax"
                 r"\parfillskip=0pt\relax\slidespaces}",
                 r"\setlength{\parskip}{0pt}",
@@ -311,12 +312,12 @@ class BeamerEngine(BuildEngine):
         size = size or BODY_SIZE
         self.node(x, y, w, f"\\fitbody{{{w}}}{{{h}}}{{{size}}}{{{items}}}", inset=TOP_INSET * size)
 
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT):
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
         if font in (MONO, MONO_BOLD):
             content = f"\\fontsize{{{size}}}{{{size * LINE:.1f}}}{font_cs(font)}\\selectfont " + tex_escape(s)
         else:
             content = self.styled(s, size, font)
-        self.node(x, y, w, content, color=color, inset=TOP_INSET * size)
+        self.node(x, y, w, content, halign=align, color=color, inset=TOP_INSET * size)
 
     def code_text(self, code, x, y, w, size, spans):
         colors, bold = [CODE] * len(code), [False] * len(code)

@@ -149,15 +149,18 @@ class KeynoteEngine(BuildEngine):
     def card(self, x, y, w, h, alpha=0.82):
         self.image(write_card(w, h, alpha=alpha), x, y, w, h)
 
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT):
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
         s, ranges = inline_code(s) if font != MONO else (s, [])
         self.cmd("tell s to set ti to make new text item")
         self.cmd(f"set object text of ti to {q(s)}")
         self.cmd(f'set font of object text of ti to "{FONTS[font]}"')
         self.cmd(f"set size of object text of ti to {size}")
         self.cmd(f"set color of object text of ti to {rgb(color)}")
-        self.cmd(f"set width of ti to {w}")
-        self.cmd(f"set position of ti to {{{x}, {y}}}")
+        if align == "right":  # without a set width the box fits the text: line its right edge up with x + w
+            self.cmd(f"set position of ti to {{{x + w} - (width of ti), {y}}}")
+        else:
+            self.cmd(f"set width of ti to {w}")
+            self.cmd(f"set position of ti to {{{x}, {y}}}")
         self.mono(ranges, "ti")
 
     def code_text(self, code, x, y, w, size, spans):

@@ -2,11 +2,24 @@
 
 import os
 import re
+import subprocess
+import sys
 from abc import ABC, abstractmethod
 
-from .assets import FIG, png_size, render_eq
+from .assets import FIG, HERE, png_size, render_eq
 from .markup import code_height, code_size, highlight
 from .style import ACCENT, CAPTION, CW, HEAD, LINE, PAD, SANS, SANS_REGULAR, TEXT, X0, Y0, YMAX
+
+
+def repo_url():
+    """The repository's origin remote as host/path (e.g. github.com/user/repo), or None if it has none."""
+    r = subprocess.run(["git", "-C", HERE, "remote", "get-url", "origin"], capture_output=True, text=True)
+    if r.returncode:
+        return None
+    url = r.stdout.strip().removesuffix(".git")
+    # https://host/path, ssh://user@host:port/path or user@host:path
+    m = re.fullmatch(r"(?:[a-z+]+://)?(?:[^@/]+@)?([^:/]+)(?::\d+)?[:/](.+)", url)
+    return f"{m[1]}/{m[2]}" if m else url
 
 
 class BuildEngine(ABC):
@@ -15,6 +28,7 @@ class BuildEngine(ABC):
     Each spec's `kind` selects a layout_<kind> method. Layouts place things in Keynote pixel
     coordinates (1920x1080, origin top left) through the primitives below, which subclasses implement.
     Masters are Keynote's master slide names: "Title", "Section", "Statement", "Title & Bullets", "Title Only".
+    Any slide with repo=True also shows the repository's URL (from git) at the lower right.
     """
 
     default_output = None  # file name in the repository root
@@ -25,6 +39,9 @@ class BuildEngine(ABC):
         self.lang = "c"
 
     def build(self, slides):
+        self.repo = repo_url()
+        if self.repo is None and any(spec.get("repo") for spec in slides):
+            print("warning: no git remote named origin, so the slides show no repository URL", file=sys.stderr)
         self.begin()
         for spec in slides:
             self.lang = spec.get("lang", "c")  # syntax highlighting for code blocks
@@ -32,6 +49,8 @@ class BuildEngine(ABC):
             if layout is None:
                 raise ValueError(spec["kind"])
             layout(spec)
+            if spec.get("repo") and self.repo:
+                self.add_repo_url()
             if spec.get("notes"):
                 self.notes(spec["notes"])
         self.finish()
@@ -74,8 +93,9 @@ class BuildEngine(ABC):
         """Bulleted list in the box (x, y, w, h); h defaults to the rest of the content area."""
 
     @abstractmethod
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT):
-        """Text in a box of width w; outside code (font MONO), `backticks` mark inline code."""
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
+        """Text in a box of width w, aligned "left" or "right"; outside code (font MONO), `backticks` mark
+        inline code."""
 
     @abstractmethod
     def code_text(self, code, x, y, w, size, spans):
@@ -108,6 +128,10 @@ class BuildEngine(ABC):
                 spans.append((m.start(g) + 1, m.end(g), ACCENT, True))
         self.code_text(code, x + PAD, y + PAD, w - 2 * PAD, size, spans)
         return ch
+
+    def add_repo_url(self):
+        """The repository's URL at the lower right, on the line of the title slide's footer."""
+        self.text(self.repo, X0, 968, CW, size=30, font=HEAD, color=CAPTION, align="right")
 
     def add_figure(self, name, x, y, bw, bh, center=True, card=True):
         """Fit figure into box (bw x bh) on a white card; returns (x, y, w, h) of card."""
