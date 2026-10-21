@@ -93,9 +93,9 @@ class BuildEngine(ABC):
         """Bulleted list in the box (x, y, w, h); h defaults to the rest of the content area."""
 
     @abstractmethod
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left", link=None):
         """Text in a box of width w, aligned "left" or "right"; outside code (font MONO), `backticks` mark
-        inline code."""
+        inline code. With link, an engine that can makes the text a link to that URL."""
 
     @abstractmethod
     def code_text(self, code, x, y, w, size, spans):
@@ -131,7 +131,7 @@ class BuildEngine(ABC):
 
     def add_repo_url(self):
         """The repository's URL at the lower right, on the line of the title slide's footer."""
-        self.text(self.repo, X0, 968, CW, size=30, font=HEAD, color=CAPTION, align="right")
+        self.text(self.repo, X0, 968, CW, size=30, font=HEAD, color=CAPTION, align="right", link=f"https://{self.repo}")
 
     def add_figure(self, name, x, y, bw, bh, center=True, card=True):
         """Fit figure into box (bw x bh) on a white card; returns (x, y, w, h) of card."""
@@ -191,7 +191,7 @@ class BuildEngine(ABC):
             min(min(code_size(c, cw, 10**4) for c, _ in blocks), room / (LINE * nlines))
         )
         for c, lg in blocks:
-            y += self.add_code(c, X0 + CW - cw, y, cw, size=size, lang=lg) + gap
+            y += self.add_code(c, X0 + CW - cw, y, cw, size=size, lang=lg, marks=spec.get("marks", ())) + gap
 
     def layout_code(self, spec):
         """Code card on top, optional bullets below."""

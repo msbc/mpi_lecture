@@ -149,7 +149,8 @@ class KeynoteEngine(BuildEngine):
     def card(self, x, y, w, h, alpha=0.82):
         self.image(write_card(w, h, alpha=alpha), x, y, w, h)
 
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left", link=None):
+        # link is ignored: Keynote's AppleScript can't make hyperlinks
         s, ranges = inline_code(s) if font != MONO else (s, [])
         self.cmd("tell s to set ti to make new text item")
         self.cmd(f"set object text of ti to {q(s)}")

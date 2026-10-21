@@ -393,6 +393,35 @@ SLIDES = [
         code_w=860,
         size=32,
     ),
+    dict(
+        kind="split",
+        title="Exercise #1 output",
+        sub="Serial, then in parallel on 4 processes",
+        lang=None,
+        bullets=[
+            "Serial: one copy of the program, one answer",
+            "Parallel: Slurm starts 4 independent copies of the same serial program",
+            "Every line appears 4 times: the copies share no work and exchange no data",
+            "Four cores, the same answer, and no speed-up",
+        ],
+        code=[
+            "$ ./pi\nNumber of intervals = 10000000.\nPi is approximately 3.1415926535897309, with error 6.21725e-14",
+            "$ cat output.log\n"
+            "Number of intervals = 10000000.\n"
+            "Number of intervals = 10000000.\n"
+            "Number of intervals = 10000000.\n"
+            "Number of intervals = 10000000.\n"
+            "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+            "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+            "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+            "Pi is approximately 3.1415926535897309, with error 6.21725e-14",
+        ],
+        marks=[r"Pi is approximately (\S+),"],
+        code_w=1000,
+        size=32,
+        notes="Output of cpi_1.c on this laptop; fpi_1.f90 prints the same values with wider spacing. "
+        "With srun the four copies' lines can interleave in any order.",
+    ),
     # ---------------------------------------------------------- fundamentals
     dict(kind="section", title="MPI fundamentals"),
     dict(
@@ -475,6 +504,8 @@ SLIDES = [
         kind="split",
         title="Hands-on exercise #2",
         bullets=[
+            "In every exercise, change only `main` (the main program in Fortran): "
+            "`parse_nslices` and `print_usage` need no changes",
             "Add MPI initialization, size, rank and termination calls to `cpi_1.c` or `fpi_1.f90`; "
             "print `myrank` and `nproc`",
             "Build, then run in parallel again: `sbatch slurm_script`",
@@ -502,6 +533,34 @@ SLIDES = [
         ],
         code_w=940,
         size=32,
+    ),
+    dict(
+        kind="split",
+        title="Exercise #2 output",
+        sub="Output of `solutions/cpi_2.c` on 4 processes",
+        lang=None,
+        bullets=[
+            "New: every process prints its own rank, from 0 to `nproc - 1`",
+            "The order of the lines changes from run to run: the processes run asynchronously",
+            "Still no cooperation: every process does all the work and gets the same π",
+        ],
+        code="Rank 0 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 3 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 2 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 1 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+        "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+        "Pi is approximately 3.1415926535897309, with error 6.21725e-14\n"
+        "Pi is approximately 3.1415926535897309, with error 6.21725e-14",
+        marks=[r"Rank \d+ of \d+"],
+        code_w=1000,
+        size=34,
+        notes="Run on this laptop with Open MPI; fpi_2.f90 prints the same values with wider spacing. "
+        "Your order will differ.",
     ),
     dict(
         kind="twocode",
@@ -952,6 +1011,36 @@ SLIDES = [
         "carry on computing.",
     ),
     dict(
+        kind="split",
+        title="Exercise #4 output",
+        sub="The `Pi` lines of the two solutions, on 4 processes",
+        lang=None,
+        bullets=[
+            "Both fix exercise #3: the answer is π again",
+            "`MPI_Reduce` (4a): only the root gets the sum; the other processes print the 0 they started with",
+            "`MPI_Allreduce` (4b): every process gets the sum",
+            "The last digits differ from the serial run: the sum is added in a different order",
+        ],
+        code=[
+            "# cpi_4a.c: MPI_Reduce\n"
+            "Pi is approximately 0.0000000000000000, with error 3.14159\n"
+            "Pi is approximately 0.0000000000000000, with error 3.14159\n"
+            "Pi is approximately 0.0000000000000000, with error 3.14159\n"
+            "Pi is approximately 3.1415926535896861, with error 1.07025e-13",
+            "# cpi_4b.c: MPI_Allreduce\n"
+            "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+            "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+            "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+            "Pi is approximately 3.1415926535896865, with error 1.06581e-13",
+        ],
+        marks=[r"Pi is approximately (\S+),"],
+        code_w=1000,
+        size=32,
+        notes="Only the Pi lines are shown; the Rank and Number of intervals lines are as in exercise #2. "
+        "Run on this laptop with Open MPI: the order of the lines, and which one carries the sum with "
+        "MPI_Reduce, depends on when each process prints.",
+    ),
+    dict(
         kind="twocode",
         title="Exercise #4 solution in C",
         source="C/solutions/cpi_4a.c",
@@ -1067,6 +1156,33 @@ SLIDES = [
         ],
         code_w=760,
         size=30,
+    ),
+    dict(
+        kind="split",
+        title="Exercise #5 output",
+        sub="Output of `solutions/cpi_5.c` on 4 processes",
+        lang=None,
+        bullets=[
+            "The same answer as exercise #4b",
+            "Only the root read the command line, yet every process knows `nslices`: `MPI_Bcast` delivered it",
+            "Every process holds the sum: `MPI_Allreduce`",
+        ],
+        code="Rank 0 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 1 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 3 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Rank 2 of 4.\n"
+        "Number of intervals = 10000000.\n"
+        "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+        "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+        "Pi is approximately 3.1415926535896865, with error 1.06581e-13\n"
+        "Pi is approximately 3.1415926535896865, with error 1.06581e-13",
+        marks=[r"Number of intervals = (\d+)", r"Pi is approximately (\S+),"],
+        code_w=1000,
+        size=34,
+        notes="Run on this laptop with Open MPI; fpi_5.f90 prints the same values with wider spacing.",
     ),
     dict(
         kind="code",

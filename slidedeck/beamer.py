@@ -219,6 +219,7 @@ class BeamerEngine(BuildEngine):
                 f"\\geometry{{paperwidth={W}bp, paperheight={H}bp}}",
                 r"\usepackage{fontspec}",
                 r"\usepackage{tikz}",
+                r"\hypersetup{hidelinks}  % links are underlined by the slide, not boxed or colored by hyperref",
                 r"\setbeamertemplate{navigation symbols}{}",
                 r"\setbeamertemplate{background canvas}[default]",
                 r"\setbeamercolor{background canvas}{bg=white}",
@@ -312,11 +313,14 @@ class BeamerEngine(BuildEngine):
         size = size or BODY_SIZE
         self.node(x, y, w, f"\\fitbody{{{w}}}{{{h}}}{{{size}}}{{{items}}}", inset=TOP_INSET * size)
 
-    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left"):
+    def text(self, s, x, y, w, size=36, font=SANS, color=TEXT, align="left", link=None):
         if font in (MONO, MONO_BOLD):
             content = f"\\fontsize{{{size}}}{{{size * LINE:.1f}}}{font_cs(font)}\\selectfont " + tex_escape(s)
         else:
             content = self.styled(s, size, font)
+        if link:  # a link, underlined and otherwise styled like the text around it
+            switch, text = content.split("\\selectfont ", 1)
+            content = f"{switch}\\selectfont \\href{{{link}}}{{\\underline{{{text}}}}}"
         self.node(x, y, w, content, halign=align, color=color, inset=TOP_INSET * size)
 
     def code_text(self, code, x, y, w, size, spans):
