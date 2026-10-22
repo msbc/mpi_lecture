@@ -3,7 +3,7 @@
 Materials for the "Introduction to MPI" lecture at the Fall Break Parallel Programming Bootcamp 2026
 (Research Computing, Princeton University). Adapted from slides by Jonathan Gorard (PPPL).
 
-The repository has two parts: a slide deck generated from a Python slide spec (as Keynote or as a Beamer PDF),
+The repository has two parts: a slide deck generated from a Python slide spec (as Keynote, as a Beamer PDF or as PowerPoint),
 and hands-on exercises in C and Fortran.
 
 ## Contents
@@ -11,8 +11,8 @@ and hands-on exercises in C and Fortran.
 | Path | What it is |
 | --- | --- |
 | `slides.py` | Slide content and presenter notes: the source of truth for the deck |
-| `build_slidedeck.py` | Builds `Intro_MPI.key` (Keynote) or `Intro_MPI.pdf` (Beamer) from `slides.py` |
-| `slidedeck/` | The build engines: shared layouts in `engine.py`, output in `keynote.py` and `beamer.py` |
+| `build_slidedeck.py` | Builds `Intro_MPI.key` (Keynote), `Intro_MPI.pdf` (Beamer) or `Intro_MPI.pptx` (PowerPoint) from `slides.py` |
+| `slidedeck/` | The build engines: shared layouts in `engine.py`, output in `keynote.py`, `beamer.py` and `powerpoint.py` |
 | `figures/` | Images used by the slides |
 | `figures/src/` | Matplotlib scripts that draw some of those images |
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
@@ -23,11 +23,12 @@ and hands-on exercises in C and Fortran.
 
 ## Building the slides
 
-Edit `slides.py`, then build the deck as Keynote, or as a PDF with Beamer:
+Edit `slides.py`, then build the deck as Keynote, as a PDF with Beamer, or as PowerPoint:
 
 ```
 uv run build_slidedeck.py --output /tmp/Intro_MPI.key
 uv run build_slidedeck.py --engine beamer --output /tmp/Intro_MPI.pdf
+uv run build_slidedeck.py --engine pptx --output /tmp/Intro_MPI.pptx
 ```
 
 - Both engines lay out the slides the same way: `slidedeck/engine.py` places everything on a 1920x1080 canvas,
@@ -37,20 +38,25 @@ uv run build_slidedeck.py --engine beamer --output /tmp/Intro_MPI.pdf
   macOS downloads the first time Keynote needs them, plus Menlo and Helvetica Neue; without Graphik and Produkt it
   falls back to Helvetica Neue. The slides have a plain white background instead of the theme's waves, and the
   presenter notes are in the PDF as `\note`s (hidden unless you turn on Beamer's `show notes`).
-- Equations are typeset with `lualatex` for both engines.
+- The PowerPoint engine uses [python-pptx](https://python-pptx.readthedocs.io), so it runs on any platform, but it
+  needs `pdftoppm` (poppler, `brew install poppler`) to turn the equations into images. Slides have a plain white
+  background and Helvetica Neue and Menlo fonts (PowerPoint substitutes its own where they are missing); titles are
+  real title placeholders, and the presenter notes are kept. Text is fitted to its box by estimate, so check
+  the long bullet lists after a build.
+- Equations are typeset with `lualatex` for every engine.
 - Code blocks are syntax-highlighted with [Pygments](https://pygments.org) (installed by `uv run` from `pyproject.toml`).
   Set `lang="bash"`, `"make"` or `"fortran"` on a slide in `slides.py`; the default is C.
 - The Keynote deck uses the "Dynamic Waves Light" theme at 16:9.
 - A slide with `repo=True` shows the repository's URL at the lower right (the title slide and the last slide do).
   It comes from `git remote get-url origin`, so it follows the remote if the repository moves.
 - The Keynote engine refuses to overwrite an existing file unless you pass `--overwrite`, since the deck may
-  have been edited by hand; the Beamer engine always replaces its PDF.
-  Without `--output` they write `Intro_MPI.key` or `Intro_MPI.pdf` in this directory.
+  have been edited by hand; the Beamer and PowerPoint engines always replace their output.
+  Without `--output` they write `Intro_MPI.key`, `Intro_MPI.pdf` or `Intro_MPI.pptx` in this directory.
 - `--export-png DIR` also exports each slide as an image (Keynote only).
-- `--print-script` prints the generated AppleScript or LaTeX instead of running it, for debugging a build.
+- `--print-script` (Keynote and Beamer only) prints the generated AppleScript or LaTeX instead of running it, for debugging a build.
   Nothing is saved, so it skips the overwrite check; it still renders any missing cards and equations under `figures/`.
 
-`Intro_MPI.key` and `Intro_MPI.pdf` are generated and not tracked by git; change `slides.py`, not the deck.
+`Intro_MPI.key`, `Intro_MPI.pdf` and `Intro_MPI.pptx` are generated and not tracked by git; change `slides.py`, not the deck.
 
 ### Figures
 

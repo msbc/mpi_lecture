@@ -9,18 +9,22 @@ import os
 import shutil
 import subprocess
 import tempfile
-from collections import namedtuple
 
 from .engine import BuildEngine
 from .markup import inline_code
 from .style import (
     ACCENT,
+    BODY_SIZE,
     CAPTION,
     CARD_BORDER,
     CODE,
     COMMENT,
+    COVER_FOOTER,
+    COVER_SUB,
+    COVER_TITLE,
     CW,
     HEAD,
+    HEAD_TITLE,
     KEYWORD,
     LINE,
     LITERAL,
@@ -28,7 +32,11 @@ from .style import (
     MONO_BOLD,
     SANS,
     SANS_REGULAR,
+    SECTION_TITLE,
+    STATEMENT,
+    SUBTITLE,
     TEXT,
+    TITLE,
     TYPE,
     H,
     W,
@@ -37,7 +45,6 @@ from .style import (
     YMAX,
 )
 
-HEAD_TITLE = "head-title"  # an extra font role: Produkt-Extralight, for the masters' titles
 
 SANS_LINE = 1.33  # line height / font size for the theme's sans text
 PARA_SKIP = 1.45  # extra space between paragraphs of a Keynote text item, in em
@@ -45,18 +52,6 @@ PARA_SKIP = 1.45  # extra space between paragraphs of a Keynote text item, in em
 TOP_INSET = 0.45
 CODE_INSET = 0.33
 ITEM_SKIP = 1.1  # extra space between the bullets of a body placeholder, in em
-BODY_SIZE = 40  # the "Title & Bullets" master's body size
-# Text boxes of the Keynote masters, measured with osascript
-# shrink: one line, scaled down to fit the width (Keynote's "shrink text to fit"); otherwise lines wrap
-Box = namedtuple("Box", "x y w h font size valign halign shrink", defaults=("left", False))
-TITLE = Box(95, 50, 1730, 123, HEAD_TITLE, 100, "bottom", shrink=True)  # "Title & Bullets" and "Title Only"
-SUBTITLE = Box(95, 175, 1730, 79, HEAD_TITLE, 55, "top", shrink=True)
-SECTION_TITLE = Box(95, 308, 1730, 366, HEAD_TITLE, 120, "middle")
-STATEMENT = Box(95, 330, 1730, 322, HEAD_TITLE, 120, "middle", "center")
-COVER_TITLE = Box(95, 206, 1730, 338, HEAD_TITLE, 120, "bottom")  # the "Title" master
-COVER_SUB = Box(95, 579, 1730, 158, HEAD_TITLE, 55, "top", shrink=True)
-COVER_FOOTER = Box(95, 966, 1730, 52, HEAD, 33, "top", shrink=True)
-
 # The theme's fonts ship with macOS as downloadable assets; Keynote downloads them on first use
 ASSETS = "/System/Library/AssetsV2/com_apple_MobileAsset_Font*/*/AssetData"
 SYSTEM_FONTS = "/System/Library/Fonts"

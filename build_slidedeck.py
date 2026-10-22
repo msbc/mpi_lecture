@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Build the lecture deck from the slide spec in slides.py, with one of two engines:
+"""Build the lecture deck from the slide spec in slides.py, with one of three engines:
 
   keynote  Intro_MPI.key (Keynote, "Dynamic Waves Light", 1920x1080), via a generated AppleScript run by osascript
   beamer   Intro_MPI.pdf (Beamer, styled to match the Keynote deck), via generated LaTeX compiled by lualatex
+  pptx     Intro_MPI.pptx (PowerPoint, styled to match the Keynote deck), via python-pptx
 
-Usage:  python3 build_slidedeck.py [--engine {keynote,beamer}] [--output PATH] [--overwrite]
+Usage:  python3 build_slidedeck.py [--engine {keynote,beamer,pptx}] [--output PATH] [--overwrite]
                                    [--export-png DIR] [--print-script]
 
 The Keynote engine refuses to run if the output file already exists unless --overwrite is given.
@@ -18,11 +19,12 @@ import sys
 from slidedeck.assets import HERE
 from slidedeck.beamer import BeamerEngine
 from slidedeck.keynote import KeynoteEngine
+from slidedeck.powerpoint import PptxEngine
 
 sys.path.insert(0, HERE)
 from slides import SLIDES  # noqa: E402
 
-ENGINES = {"keynote": KeynoteEngine, "beamer": BeamerEngine}
+ENGINES = {"keynote": KeynoteEngine, "beamer": BeamerEngine, "pptx": PptxEngine}
 
 
 def main():
@@ -32,7 +34,7 @@ def main():
         "--overwrite", action="store_true", help="replace an existing Intro_MPI.key (Keynote edits are lost)"
     )
     ap.add_argument("--export-png", metavar="DIR", help="also export each slide as a PNG into DIR (Keynote only)")
-    ap.add_argument("--output", help="where to save the deck (default: Intro_MPI.key or Intro_MPI.pdf)")
+    ap.add_argument("--output", help="where to save the deck (default: Intro_MPI.key, .pdf or .pptx)")
     ap.add_argument(
         "--print-script", action="store_true", help="print the generated AppleScript or LaTeX instead of running it"
     )
@@ -41,6 +43,8 @@ def main():
     out_path = os.path.abspath(args.output or os.path.join(HERE, cls.default_output))
     if cls.protect_existing and os.path.exists(out_path) and not args.overwrite and not args.print_script:
         ap.error(f"{out_path} already exists (Keynote edits would be lost); pass --overwrite to replace it")
+    if args.print_script and cls is PptxEngine:
+        ap.error("--print-script works only with --engine keynote or beamer")
     if args.export_png:
         if cls is not KeynoteEngine:
             ap.error("--export-png works only with --engine keynote")
