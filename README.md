@@ -3,7 +3,7 @@
 Materials for the "Introduction to MPI" lecture at the Fall Break Parallel Programming Bootcamp 2026
 (Research Computing, Princeton University). Adapted from slides by Jonathan Gorard (PPPL).
 
-The repository has two parts: a slide deck generated from a Python slide spec (as Keynote, as a Beamer PDF or as PowerPoint),
+The repository has two parts: a slide deck generated from a Python slide spec (as Keynote, as a Beamer PDF, as PowerPoint or as LibreOffice),
 and hands-on exercises in C and Fortran.
 
 ## Contents
@@ -11,8 +11,8 @@ and hands-on exercises in C and Fortran.
 | Path | What it is |
 | --- | --- |
 | `slides.py` | Slide content and presenter notes: the source of truth for the deck |
-| `build_slidedeck.py` | Builds `Intro_MPI.key` (Keynote), `Intro_MPI.pdf` (Beamer) or `Intro_MPI.pptx` (PowerPoint) from `slides.py` |
-| `slidedeck/` | The build engines: shared layouts in `engine.py`, output in `keynote.py`, `beamer.py` and `powerpoint.py` |
+| `build_slidedeck.py` | Builds `Intro_MPI.key` (Keynote), `Intro_MPI.pdf` (Beamer) or `Intro_MPI.pptx` (PowerPoint) or `Intro_MPI.odp` (LibreOffice) from `slides.py` |
+| `slidedeck/` | The build engines: shared layouts in `engine.py`, output in `keynote.py`, `beamer.py`, `powerpoint.py` and `libreoffice.py` |
 | `figures/` | Images used by the slides |
 | `figures/src/` | Matplotlib scripts that draw some of those images |
 | `Intro_MPI/` | The exercises; see [Intro_MPI/README.md](Intro_MPI/README.md) |
@@ -23,12 +23,13 @@ and hands-on exercises in C and Fortran.
 
 ## Building the slides
 
-Edit `slides.py`, then build the deck as Keynote, as a PDF with Beamer, or as PowerPoint:
+Edit `slides.py`, then build the deck as Keynote, as a PDF with Beamer, as PowerPoint, or as LibreOffice:
 
 ```
 uv run build_slidedeck.py --output /tmp/Intro_MPI.key
 uv run build_slidedeck.py --engine beamer --output /tmp/Intro_MPI.pdf
 uv run build_slidedeck.py --engine pptx --output /tmp/Intro_MPI.pptx
+uv run build_slidedeck.py --engine odp --output /tmp/Intro_MPI.odp
 ```
 
 - Both engines lay out the slides the same way: `slidedeck/engine.py` places everything on a 1920x1080 canvas,
@@ -43,6 +44,9 @@ uv run build_slidedeck.py --engine pptx --output /tmp/Intro_MPI.pptx
   background and Helvetica Neue and Menlo fonts (PowerPoint substitutes its own where they are missing); titles are
   real title placeholders, and the presenter notes are kept. Text is fitted to its box by estimate, so check
   the long bullet lists after a build.
+- The LibreOffice engine builds the PowerPoint deck and converts it to `.odp` with `soffice`
+  (`brew install --cask libreoffice`). It uses regular-weight Helvetica Neue, since LibreOffice can't find
+  "Helvetica Neue Light" and would fall back to a serif font.
 - Equations are typeset with `lualatex` for every engine.
 - Code blocks are syntax-highlighted with [Pygments](https://pygments.org) (installed by `uv run` from `pyproject.toml`).
   Set `lang="bash"`, `"make"` or `"fortran"` on a slide in `slides.py`; the default is C.
@@ -56,7 +60,7 @@ uv run build_slidedeck.py --engine pptx --output /tmp/Intro_MPI.pptx
 - `--print-script` (Keynote and Beamer only) prints the generated AppleScript or LaTeX instead of running it, for debugging a build.
   Nothing is saved, so it skips the overwrite check; it still renders any missing cards and equations under `figures/`.
 
-`Intro_MPI.key`, `Intro_MPI.pdf` and `Intro_MPI.pptx` are generated and not tracked by git; change `slides.py`, not the deck.
+`Intro_MPI.key`, `.pdf`, `.pptx` and `.odp` are generated and not tracked by git; change `slides.py`, not the deck.
 
 ### Figures
 

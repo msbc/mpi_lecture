@@ -102,6 +102,7 @@ def rasterize(path):
 class PptxEngine(BuildEngine):
     default_output = "Intro_MPI.pptx"
     protect_existing = False  # a generated deck has no hand edits to lose
+    fonts = FONTS
 
     def __init__(self, output):
         super().__init__(output)
@@ -140,11 +141,10 @@ class PptxEngine(BuildEngine):
         tf.vertical_anchor = {"top": MSO_ANCHOR.TOP, "middle": MSO_ANCHOR.MIDDLE, "bottom": MSO_ANCHOR.BOTTOM}[valign]
         return tf
 
-    @staticmethod
-    def run(paragraph, text, font, size, color, bold=False, link=None):
+    def run(self, paragraph, text, font, size, color, bold=False, link=None):
         r = paragraph.add_run()
         r.text = text
-        r.font.name = FONTS[font]
+        r.font.name = self.fonts[font]
         r.font.size = Pt(size)
         r.font.bold = bold
         r.font.color.rgb = rgb(color)
