@@ -2,6 +2,9 @@
 Intro_MPI.key
 Intro_MPI.pdf
 Intro_MPI.pptx
+Intro_MPI_libreoffice.pdf
+# PowerPoint's lock file while a deck is open
+~$*.pptx
 Intro_MPI.log
 Intro_MPI.backup-*.key
 figures/_cards/
